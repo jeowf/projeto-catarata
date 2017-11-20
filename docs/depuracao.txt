@@ -1,0 +1,19 @@
+reset;gcc main.c filters.c ioput.c -o ./exec/catarata -w; ./exec/catarata -i ../imgs/Catarata.ppm -f ppm -o diag.ppm
+
+WINDOWS
+gcc main.c filters.c ioput.c -o catarata -w -lm & catarata -i ../imgs/Catarata.ppm -f ppm -o diag.ppm
+
+
+reset
+
+gcc main.c filters.c ioput.c -g -O0 -o ./exec/catarata -w
+
+gdb --args ./exec/catarata -i ../imgs/Catarata.ppm -f ppm -o diag.ppm
+
+l: listar o codigo
+r: inicia execução
+b 12: breakpoint linha 12
+c: continua execução sem parar
+n: executa passo a passo
+p var: imprime conteúdo da variável
+q: quit
