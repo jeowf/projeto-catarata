@@ -50,12 +50,12 @@ Pixel** readImage(ObjectImage *objectImage){
 		//lê largura e altura da imagem
 		fscanf(img, "%d", &objectImage->width);
 		fscanf(img, "%d", &objectImage->height);
-
+		int mp;
+		fscanf(img, "%d", &mp);
 		//matriz pixel
 		image = calloc(objectImage->height,sizeof(Pixel));
 		for (i = 0; i < objectImage->height; i++)
 			image[i] = calloc(objectImage->width,sizeof(Pixel));
-
 		//preencher matriz de pixel com seus valores rgb
 		for (i = 0; i < objectImage->height; i++){
 			for (j = 0; j < objectImage->width; j++){
@@ -77,7 +77,7 @@ void writeImage(ObjectImage *objectImage, Pixel **image){
 	FILE *img; 
 	img = fopen(objectImage->destination,"w");
 
-	fprintf(img, "%s\n%d %d\n", 
+	fprintf(img, "%s\n%d %d\n255\n", 
 			"P3", 
 			objectImage->width, 
 			objectImage->height);

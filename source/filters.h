@@ -1,5 +1,10 @@
 #include "ioput.h"
 
+
+typedef struct {
+	int x, y, r;
+} Circle;
+
 /* */
 void applyGrayScale(Pixel **image, int width, int height);
 
@@ -26,4 +31,16 @@ int** getBinImage(Pixel **image, int width, int height, int threshold);
 
 Pixel** createBinImage(int **image, int width, int height);
 
-//void findCircle(Pixel **image, int width, int height);
+Circle findCircle(int **image, int width, int height);
+
+double getPercentual (int vTotal, int vCurrent);
+
+Pixel** squareImage(Pixel **image, int *width, int *height, int d);
+
+Pixel** resizeImage(Pixel **image, int *width, int *height, int d);
+
+int nearDivisible(int value, int d);
+
+Pixel** plotImage (int **image, int width, int height);
+
+void drawCircle (Pixel **image, int width, int height, Circle c, int margin);
