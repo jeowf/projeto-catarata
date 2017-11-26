@@ -5,28 +5,25 @@ typedef struct {
 	int x, y, r;
 } Circle;
 
-/* */
+/*Aplica o filtro de escala de cinza a imagem dada*/
 void applyGrayScale(Pixel **image, int width, int height);
 
-/* */
+/*Retorna a copia da imagem dada*/
 Pixel** copyImage(Pixel **image, int width, int height);
 
-/* */
+
 //void convolution(Pixel **image, int width, int height, int (*f)(int, int), int filterWidth, int filterHeight);
 
-/* */
-//int applyGaussian(int x, int y);
+
+/*Aplica o filtro gaussiano (desfoque) à imagem dada*/
 void applyGaussian(Pixel **image, int width, int height);
 
 
-/* */
+/*Aplica o filtro Sobel (detecção de arestas) à imagem dada*/
 void applySobel(Pixel **image, int width, int height);
 
-/* */
-//int maxmin(int p, int min, int max);
+/*Retorna uma matriz do tipo inteiro com valores binários, determinados pelo threshold, com base na imagem dada,  em escala cinza. Pixels com valor cinza maior que o treshold são 1 e, menor, 0*/
 
-/*AJEITAR ESSE COMMENT
-Retorna uma matriz inteira referente À iamgem original levando em considera~ção q essa está numa escala cina*/
 int** getBinImage(Pixel **image, int width, int height, int threshold);
 
 Pixel** createBinImage(int **image, int width, int height);

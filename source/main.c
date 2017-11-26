@@ -5,8 +5,8 @@
 int main(int argc, char *argv[]){
 
 	ObjectImage *objectImage = newObjectImage(argc, argv);
-	Pixel **image = readImage(objectImage);
-
+	Pixel **image = findFormat(objectImage);
+/*
 	printf("Resizing\n");
 	image = squareImage(image, &objectImage->width, &objectImage->height, 2);
 	Pixel **imageB = copyImage(image, objectImage->width, objectImage->height);
@@ -25,10 +25,10 @@ int main(int argc, char *argv[]){
 	printf("Binarizing image\n");
 	int **binImage = getBinImage(image, objectImage->width, objectImage->height, 20);
 	image = createBinImage(binImage, objectImage->width, objectImage->height);
+*/
+	findWrite(objectImage, image);
 
-	writeImage(objectImage, image);
-
-	
+/*	
 	printf("Finding the circle\n");
 	//Circle c = {349, 439, 82};
 	Circle c = findCircle(binImage, objectImage->width, objectImage->height);
@@ -40,6 +40,7 @@ int main(int argc, char *argv[]){
 	writeImage(objectImage, imageB);
 	
 
-	
+	*/
 	return 0;
+
 }
