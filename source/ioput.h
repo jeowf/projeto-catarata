@@ -44,3 +44,4 @@ void writePBM(ObjectImage *objectImage, Pixel **image);
 Pixel** findFormat(ObjectImage* objectImage);
 /*escreve imagem com base no formato -f*/
 void findWrite(ObjectImage *objectImage, Pixel **image);
+void writeDiagnosis(ObjectImage objectImage, double v, double threshold);

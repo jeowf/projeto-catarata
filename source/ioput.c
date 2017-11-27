@@ -258,3 +258,13 @@ void writePGM(ObjectImage *objectImage, Pixel **image){
 	fclose(img);
 	return ;
 }
+
+void writeDiagnosis(ObjectImage objectImage, double v, double threshold){
+	FILE *file; 
+	file = fopen(objectImage.destination,"w");
+	if (v >= threshold)
+		fprintf(file, "Catarata: SIM (%.2lf %%)\n", v);
+	else
+		fprintf(file, "Catarata: NAO\n");
+	fclose(file);
+}

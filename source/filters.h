@@ -41,3 +41,5 @@ int nearDivisible(int value, int d);
 Pixel** plotImage (int **image, int width, int height);
 
 void drawCircle (Pixel **image, int width, int height, Circle c, int margin);
+
+double cataractDiagnosis (Pixel **image, Circle c);

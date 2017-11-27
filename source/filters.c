@@ -150,6 +150,7 @@ void applyGaussian(Pixel **image, int width, int height){
 	}
 
 	free(imageOrig);
+	free(mask);
 
 	return;
 }
@@ -164,13 +165,6 @@ void applySobel(Pixel **image, int width, int height){
 		masky[3][3] = {{1, 2, 1},
 					  {0, 0, 0},
 					  {-1, -2, -1}};
-
-		/*maskx[3][3] = {{-2, 0, 2},
-					  {-3, 0, 3},
-					  {-2, 0, 2}},
-		masky[3][3] = {{2, 3, 2},
-					  {0, 0, 0},
-					  {-2, -3, -2}};*/
 	Pixel gx, gy, g;
 
 	Pixel **imageOrig = copyImage(image, width, height);
@@ -203,6 +197,9 @@ void applySobel(Pixel **image, int width, int height){
 	}
 
 	free(imageOrig);
+	free(maskx);
+	free(masky);
+
 
 	return;
 }
@@ -223,7 +220,6 @@ int** getBinImage(Pixel **image, int width, int height, int threshold){
 
 	return binImage;
 }
-
 
 //metodo de debug
 Pixel** createBinImage(int **image, int width, int height){
@@ -246,11 +242,11 @@ Pixel** createBinImage(int **image, int width, int height){
 	return imageRes;
 }
 
+//metodo de debug
 double getPercentual (int vTotal, int vCurrent){
 	double out = (double) (vCurrent * 100)/vTotal;
 	return out;
 }
-
 
 //testar essa abordagem caso nao de em nada
 //http://laid.delanover.com/hough-transform-circle-detection-and-space-reduction/
@@ -423,6 +419,7 @@ void drawCircle (Pixel **image, int width, int height, Circle c, int margin){
 	return;
 }
 
+//DEBUG
 Pixel** plotImage (int **image, int width, int height){
 	int i, j, max = 0, a;
 	Pixel **imageRes = calloc(height,sizeof(Pixel));
@@ -444,4 +441,25 @@ Pixel** plotImage (int **image, int width, int height){
 	}
 	return imageRes;
 
+}
+
+double cataractDiagnosis (Pixel **image, Circle c){
+	int i, j,
+		//pTotal = 0, //total 
+		cTotal = 0, //numero de pixels com catarata
+		nTotal = 0, //numero de pixels dentro do circulo
+		CATARACT_THRESHOLD = 96;
+
+	for (i = (c.x - c.r); i <= (c.x + c.r); i++){
+		for (j = (c.y - c.r); j <= (c.y + c.r); j++){
+			//se o pixel estiver dentro do circulo
+			if (sqrt(pow((i - c.x), 2) + pow((j - c.y), 2)) <= c.r){
+				if (image[i][j].r >= CATARACT_THRESHOLD)
+					cTotal++;
+				nTotal++;
+			}
+		}
+	}
+	//printf("cTotal:%d nTotal:%d (%.2lf %%)\n", cTotal, nTotal, r);//getPercentual(nTotal, cTotal) );
+	return (double) cTotal/nTotal*100;
 }
