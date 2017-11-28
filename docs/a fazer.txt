@@ -1,0 +1,9 @@
+A FAZER
+
+Finalizar detecção de circulos
+	Ajeitar a deteção com base na Normal2 (deixar de forma automarica)
+Segmentação da flash
+Threshold inteligente
+Leituras extras de arquivo
+
+Documentação

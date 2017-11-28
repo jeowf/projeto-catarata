@@ -7,50 +7,76 @@ int main(int argc, char *argv[]){
 	ObjectImage *objectImage = newObjectImage(argc, argv);
 	Pixel **image = findFormat(objectImage);
 
-	printf("Resizing\n");
-	image = squareImage(image, &objectImage->width, &objectImage->height, 2);
-	Pixel **imageB = copyImage(image, objectImage->width, objectImage->height);
+	//printf("Recortando região da pupila\n");
+	//image = cropImage(image, &objectImage->width, &objectImage->height);
 
-	//image = resizeImage(image, &objectImage->width, &objectImage->height, 2);
-	//printf("%d %d \n",  objectImage->width, objectImage->height);
-	printf("Applying gray scale\n");
+	//printf("Aplicando escala cinza\n");
 	applyGrayScale(image, objectImage->width, objectImage->height);
 
+	Pixel **imageB = copyImage(image, objectImage->width, objectImage->height);
 
-	Circle c = {349, 439, 82}; //Catarata.ppm
-	//Circle c = {391, 490, 140}; //Catarata2.ppm
-	//Circle c = {326, 371, 154}; //Normal.ppm
-	//Circle c = {205, 239, 64}; //Normal2.ppm
+	//estimateCenter(image, objectImage->width, objectImage->height);
+	//findWrite(objectImage, image);
+
+	int **binImage = getBinImage(image, objectImage->width, objectImage->height, 254);
+	//image = createBinImage(binImage, objectImage->width, objectImage->height);
+
+	//Circle c = {349, 439, 82}; //Catarata.ppm   1015X759 = 770385 (0.01064402863) 0.0163839089
+	//Circle c = {391, 490, 140}; //Catarata2.ppm 1198X770 = 922460 (0.01517680983)
+	//Circle c = {326, 371, 154}; //Normal.ppm    1167X739 = 862413 (0.01785687367)
+	//Circle c = {205, 239, 64}; //Normal2.ppm    610X480  = 292800 (0.02185792349)
 	//cataractDiagnosis (image, c);
 	//drawCircle(image, objectImage->width, objectImage->height, c, 3);
-	/*
-	printf("Applying gaussian filter\n");
-	applyGaussian(image, objectImage->width, objectImage->height);
 	
-	printf("Applying sobel filter\n");
-	applySobel(image, objectImage->width, objectImage->height);
-
-	printf("Binarizing image\n");
-	int **binImage = getBinImage(image, objectImage->width, objectImage->height, 20);
-	image = createBinImage(binImage, objectImage->width, objectImage->height);
-	*/
+	//printf("Aplicando filtro gaussiano\n");
+	//applyGaussian(image, objectImage->width, objectImage->height);
+	
+	//printf("Aplicando filtro sobel\n");
+	//applySobel(image, objectImage->width, objectImage->height);
+	Circle estimatedCenter = estimateCenter(binImage, objectImage->width, objectImage->height);
+	printf("%d, %d\n", estimatedCenter.x, estimatedCenter.y);
+	Pixel **imageK = cropImage(imageB, &objectImage->width, &objectImage->height, estimatedCenter);
+	Pixel **imagecopia = copyImage(imageK, objectImage->width, objectImage->height);
+	applyGaussian(imageK, objectImage->width, objectImage->height);
+	applySobel(imageK, objectImage->width, objectImage->height);
+	int **binImage2 = getBinImage(imageK, objectImage->width, objectImage->height, 10);
+	//image = createBinImage(binImage, objectImage->width, objectImage->height);
+	
+	//Circle c = findCircle(binImage2, objectImage->width, objectImage->height, 80,160);
+	Circle c = findCircle(binImage2, objectImage->width, objectImage->height, 60,70);
+	
+	drawCircle(imagecopia, objectImage->width, objectImage->height, c, 1);
+	findWrite(objectImage, imagecopia);
+	//histogram(image, objectImage->width, objectImage->height);
+	//printf("Binarizando a imagem\n");
+	//int **binImage = getBinImage(image, objectImage->width, objectImage->height, 10);
+	//image = createBinImage(binImage, objectImage->width, objectImage->height);
+	
 	
 	//findWrite(objectImage, image);
-	writeDiagnosis(*objectImage, cataractDiagnosis(image, c), 60.0);
+	//writeDiagnosis(*objectImage, cataractDiagnosis(image, c), 60.0);
 
-/*	
-	printf("Finding the circle\n");
+	//Circle c = findCircle(binImage, objectImage->width, objectImage->height, 60,120);
+	
+	//drawCircle(image, objectImage->width, objectImage->height, c, 1);
+
+	//findWrite(objectImage, image);
+
+	/*
+	printf("Detectando pupila\n");
 	//Circle c = {349, 439, 82};
-	Circle c = findCircle(binImage, objectImage->width, objectImage->height);
+	//Circle c = findCircle(binImage, objectImage->width, objectImage->height, 138,140);
+	Circle c = findCircle(binImage, objectImage->width, objectImage->height, 150,160);
 	//image = plotImage(binImage, objectImage->width, objectImage->height);
 	
-	printf("Writing image at %s\n", objectImage->destination);
-	drawCircle(imageB, objectImage->width, objectImage->height, c, 3);
+	printf("Escrevendo imagem em %s\n", objectImage->destination);
+	drawCircle(imageB, objectImage->width, objectImage->height, c, 1);
 	//writeImage(objectImage, image);
-	writeImage(objectImage, imageB);
-	
+	//writeImage(objectImage, imageB);
 
-	*/
+	findWrite(objectImage, imageB);
+*/
+	
 	return 0;
 
 }
