@@ -41,7 +41,7 @@ void writePGM(ObjectImage *objectImage, Pixel **image);
 /*Cria um arquivo de imagem com base nos parâmentros passados (ObjectImage) e na imagem pbm*/
 void writePBM(ObjectImage *objectImage, Pixel **image);
 /*Carrega a imagem com base no formato -f*/
-Pixel** findFormat(ObjectImage* objectImage);
+Pixel** readImage(ObjectImage* objectImage);
 /*escreve imagem com base no formato -f*/
-void findWrite(ObjectImage *objectImage, Pixel **image);
+void writeImage(ObjectImage *objectImage, Pixel **image);
 void writeDiagnosis(ObjectImage objectImage, double v, double threshold);

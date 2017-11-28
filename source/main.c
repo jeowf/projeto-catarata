@@ -5,7 +5,7 @@
 int main(int argc, char *argv[]){
 
 	ObjectImage *objectImage = newObjectImage(argc, argv);
-	Pixel **image = findFormat(objectImage);
+	Pixel **image = readImage(objectImage);
 
 	//printf("Recortando região da pupila\n");
 	//image = cropImage(image, &objectImage->width, &objectImage->height);
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]){
 	Circle c = findCircle(binImage2, objectImage->width, objectImage->height, 60,70);
 	
 	drawCircle(imagecopia, objectImage->width, objectImage->height, c, 1);
-	findWrite(objectImage, imagecopia);
+	writeImage(objectImage, imagecopia);
 	//histogram(image, objectImage->width, objectImage->height);
 	//printf("Binarizando a imagem\n");
 	//int **binImage = getBinImage(image, objectImage->width, objectImage->height, 10);
