@@ -46,7 +46,17 @@ cada qual.
 int main(int argc, char *argv[]){
 	//pega informações da imagem 
 	ObjectImage *objectImage = newObjectImage(argc, argv);
-	Pixel **image = readImage(objectImage);
+	
+	//lê a imagem
+	Pixel **image = readImage(objectImage); // <------------COMENTE EM CASO DE ERRO
+
+	/*
+	ATENÇÃO: 
+	Dependendo do sistema operaional ou versão do GCC, pode ocorrer alguns problemas na leitura da imagem que
+	irão ocasionar na falha da alocação da imagem.
+	Nesse caso, comente a linha de código acima e descomente a de baixo.
+	*/
+	//Pixel **image = readImageLegacy(objectImage); //<--------- DESCOMENTE EM CASO DE ERRO
 
 	//converte imagem para escala cinza
 	applyGrayScale(image, objectImage->width, objectImage->height);
@@ -91,27 +101,43 @@ int main(int argc, char *argv[]){
 	//aplica o filtro sobel na região da iris para iniciar a detecção da pupila
 	applySobel(irisRegion, objectImage->width, objectImage->height);
 
-	//cria uma versão binária da imagem com sobel
+	//cria uma versão binária da imagem (região da íris) com sobel
 	int **edges = getBinImage(irisRegion, objectImage->width, objectImage->height, 10);
-	int **flashRegion = getBinImage(irisRegion, objectImage->width, objectImage->height, 60);
 
+	//cria uma versão binária da imagem (região da íris) com sobel, porém com um threshold maior, para
+	//obter as arestas dos círculos que irão compor o flash
+	int **flashRegion = getBinImage(irisRegion, objectImage->width, objectImage->height, 60);
+	//printf("%d\n", flashRegion[98][1]);
+
+	//escreve a imagem enquanto essa será processada (apenas um debug útil)
+	writeImage(objectImage, imageFinal);
 
 	//calcula quantidade de pixels brancos e pretos para estabelecer uma relação com o raio máximo dos círculos
 	//internos à iris
 	int whitePixels = countPixels(edges, objectImage->width, objectImage->height, 1);
 	int blackPixels = objectImage->width*objectImage->height - whitePixels;
+
+	//calcula as contantes multiplicativas dos raios máximo e mínimo da pupila com abse no raio da íris
 	double kRmax = 1 - fmax(whitePixels - blackPixels, 0)/(objectImage->width*objectImage->height),
 		   kRmin = kRmax * 0.5;
 
+	//procura a pupila
 	Circle pupil = findCircle(edges, objectImage->width, objectImage->height, kRmin *  irisCenter.r, kRmax * irisCenter.r);
-	excludeOutsideCircle(flashRegion, objectImage->width, objectImage->height, pupil);
+
+	//exclui os pixels fora da pupila para evitar erros na detecção do flash
+	flashRegion = excludeOutsideCircle(flashRegion, objectImage->width, objectImage->height, pupil);
+
+	//procura o flash
 	Circle flash = findCircle(flashRegion, objectImage->width, objectImage->height, kRmin * 0.16 * irisCenter.r, kRmin * 0.5 * irisCenter.r);
-	
+
+	//escreve o diagnóstico
 	writeDiagnosis(*objectImage, cataractDiagnosis(imageFinal, pupil, flash), DIAGNOSIS_CATARACT_THRESHOLD);
 
+	//desenha os círculos em volta da pupila e do flash
 	drawCircle(imageFinal, objectImage->width, objectImage->height, pupil, 1, 0.1);
 	drawCircle(imageFinal, objectImage->width, objectImage->height, flash, 1, 1);
 
+	//escreve a imagem
 	writeImage(objectImage, imageFinal);
 
 	return 0;

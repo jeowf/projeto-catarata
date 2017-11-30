@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 //tipo booleano
 typedef enum {
@@ -10,7 +11,7 @@ typedef struct {
 	char *source,
 		 *format,
 		 *destination,
-		 *out;
+ 		 *out;
     int initialized,
     	width,
     	height;
@@ -34,20 +35,14 @@ Pixel** readPPM(ObjectImage *objectImage);
 Pixel** readPBM(ObjectImage *objectImage);
 /*Retorna uma imagem com base nos parâmetros passados (ObjectImage) do tipo pgm*/
 Pixel** readPGM(ObjectImage *objectImage);
-
-
+/*Retorna uma imagem com base nos parâmetros passados (ObjectImage) do tipo bmp*/
 Pixel** readBMP(ObjectImage *objectImage);
+//Primeiro método de ler PPM
+Pixel** readImageLegacy(ObjectImage *objectImage);
 
-/*Cria um arquivo de imagem com base nos parâmentros passados (ObjectImage) e na imagem ppm*/
-void writePPM(ObjectImage *objectImage, Pixel **image);
-/*Cria um arquivo de imagem com base nos parâmentros passados (ObjectImage) e na imagem pgm*/
-void writePGM(ObjectImage *objectImage, Pixel **image);
-/*Cria um arquivo de imagem com base nos parâmentros passados (ObjectImage) e na imagem pbm*/
-void writePBM(ObjectImage *objectImage, Pixel **image);
-
-void writeBMP(ObjectImage *objectImage, Pixel **image);
+/*Cria um arquivo de imagem com base nos parâmentros passados (ObjectImage) e na imagem*/
+void writeImage(ObjectImage *objectImage, Pixel **image);
 /*Carrega a imagem com base no formato -f*/
 Pixel** readImage(ObjectImage* objectImage);
-/*escreve imagem com base no formato -f*/
-void writeImage(ObjectImage *objectImage, Pixel **image);
+/*escreve o diagóstico num arquivo .txt*/
 void writeDiagnosis(ObjectImage objectImage, double v, double threshold);

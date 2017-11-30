@@ -349,7 +349,6 @@ double cataractDiagnosis (Pixel **image, Circle pupil, Circle flash){
 			}
 		}
 	}
-	printf("%.2lf\n", (double) cTotal/nTotal*100);
 	return (double) cTotal/nTotal*100;
 }
 
@@ -522,20 +521,19 @@ int getMediumPixel (Pixel **image, Circle c){
 			
 		}
 	}
-	//printf("%d\n", vTotal/nTotal);
 	return vTotal/nTotal;
 }
 
-void excludeOutsideCircle(int **image, int width, int height, Circle c){
-	int x, y;
-	for (x = 0; x < height; x++){
-		for (y = 0; y < width; y++){
-			if (x < (c.x - c.r) || x > (c.x + c.r) ||
-				y < (c.y - c.r) || y > (c.y + c.r)){
-				image[x][y] = 0;
-			} else if (sqrt(pow((x - c.x), 2) + pow((y - c.y), 2)) > c.r) {
-				image[x][y] = 0;
-			}
+int** excludeOutsideCircle(int **image, int width, int height, Circle c){
+	int x, y,
+		**outImage = calloc(height, sizeof(int*));
+	for (y = 0; y < height; y++){
+		outImage[y] = calloc(width, sizeof(int));
+		for (x = 0; x < width; x++){
+			if (sqrt(pow((x - c.x), 2) + pow((y - c.y), 2)) < c.r) {
+				outImage[y][x] = image[y][x];
+			} 
 		}
 	}
+	return outImage;
 }

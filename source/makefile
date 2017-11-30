@@ -1,4 +1,7 @@
-all: catarata.exe
+all: catarata
 
-catarata.exe:
-	 gcc *.c -o catarata -w -lm 
+catarata:
+	gcc *.c -o catarata -w -lm 
+
+clean:
+	rm -f catarata

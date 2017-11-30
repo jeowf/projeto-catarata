@@ -3,7 +3,7 @@
 typedef enum {
 	FLASH_AREA 					 = 32,
 	R_CROP_MAX 					 = 210,
-	PIXEL_CATARACT_MIN_THRESHOLD = 90,
+	PIXEL_CATARACT_MIN_THRESHOLD = 76,
 	PIXEL_CATARACT_MAX_THRESHOLD = 230,
 	DIAGNOSIS_CATARACT_THRESHOLD = 60
 }Constants;
@@ -66,4 +66,4 @@ int countPixels(int **image, int width, int height, int v);
 
 int getMediumPixel (Pixel **image, Circle c);
 
-void excludeOutsideCircle(int **image, int width, int height, Circle c);
+int** excludeOutsideCircle(int **image, int width, int height, Circle c);
