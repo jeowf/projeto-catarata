@@ -117,6 +117,10 @@ Pixel** cropImage(Pixel **image, int *width, int *height, Circle c){
 		horizontalF = c.x + c.r;
 
 	Pixel **newImage = calloc(size, sizeof(Pixel*));
+	if (newImage == NULL){
+		fprintf(stderr, "Falha de alocação\n");
+		exit(0);
+	}
 	for (i = verticalI; i < verticalF; i++){
 		newImage[i-verticalI] = calloc(size, sizeof(Pixel));
 	}
@@ -165,6 +169,10 @@ void histogram(Pixel **image, int width, int height){
 int** getBinImage(Pixel **image, int width, int height, int threshold){
 	int i, j,
 		**binImage = calloc (height, sizeof(int));
+		if (binImage == NULL){
+		fprintf(stderr, "Falha de alocação\n");
+		exit(0);
+	}
 
 	for (i = 0; i < height; i++){
 		binImage[i] = calloc(width,sizeof(int));
@@ -192,6 +200,10 @@ Pixel** createBinImage(int **image, int width, int height){
 	int i, j,
 		w = 167, b = 8;
 	Pixel **imageRes = calloc(height,sizeof(Pixel));
+	if (imageRes == NULL){
+		fprintf(stderr, "Falha de alocação\n");
+		exit(0);
+	}
 	for (i = 0; i < height; i++){
 		imageRes[i] = calloc(width,sizeof(Pixel));
 		for (j = 0; j< width; j++)
@@ -356,6 +368,10 @@ Circle estimateCenter(int **image, int width, int height){
 	int x, y, max, i, j, aux,
 		*horizontalProjection = calloc(width, sizeof(int)),
 		*verticalProjection = calloc(height, sizeof(int));
+		if (verticalProjection == NULL || horizontalProjection == NULL){
+		fprintf(stderr, "Falha de alocação\n");
+		exit(0);
+	}
 
 	Circle c = {0, 0, R_CROP_MAX};
 	if (fmin(width, height) < 3*R_CROP_MAX)
@@ -527,6 +543,10 @@ int getMediumPixel (Pixel **image, Circle c){
 int** excludeOutsideCircle(int **image, int width, int height, Circle c){
 	int x, y,
 		**outImage = calloc(height, sizeof(int*));
+		if (outImage == NULL){
+		fprintf(stderr, "Falha de alocação\n");
+		exit(0);
+	}
 	for (y = 0; y < height; y++){
 		outImage[y] = calloc(width, sizeof(int));
 		for (x = 0; x < width; x++){
