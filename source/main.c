@@ -2,8 +2,49 @@
 #include "filters.h"
 #include <stdio.h>
 
-int main(int argc, char *argv[]){
+/*
+Para otimizar a detecção da pupila (tanto deixar mais rápida quanto diminuir as chances de erro),
+optamos por adicionar alguns processos extras além dos exigidos no documento do projeto.
 
+O exigido, em resumo, seria:
+	- Ler a imagem .ppm
+	- Aplicar uma série de filtros
+	- Detectar a pupila através de Hough
+	- Gerar o diagnóstico
+
+Nós, porém, tivemos alguns problemas para detectar o círculo usando as mesmas proporções de 
+raio mínimo e máximo nas imagens fornecidas, sendo necessário conhecer os raios para cada imagem.
+Como achamos que essa abordagem não era a melhor, propomos o seguinte:
+	- Ler a imagem .ppm
+	- Encontrar região da íris
+		1 - Aplica-se o filtro de escala cinza à imagem
+		2 - Cria-se duas imagens binárias (a primeira, com um threshold igual ao valor de intensidade 
+		máxima de pixel na imagem, e a segunda com um threshold capaz de isolar as regiões mais escuras
+		da image)
+		3 - Encontra-se o flash na imagem usando a primeira imagem binária
+		4 - Usa-se a coordenada do flash para estimar o centro e raio da íris (levando em consideração a 
+		existência de um flash dentro da íris) com base na segunda imagem binária 
+		5 - Recorta-se, da imagem original, a região da íris
+	- Aplicar os demais filtros (conforme a abordagem padrão)
+	- Detectar a pupila através de Hough
+	- Gerar o diagnóstico
+
+A vantagem desse processo é poder automatizar a escolha dos raios com base na proporção do raio da íris 
+com o raio da pupila, mesmo que esses não sejam concêntricos. Além disso, a transformada de Hough encontra
+círculos de forma mais rápida já que busca círculos em uma imagem menor com um intervalo de raios menor.
+
+Mesmo assim, percebeu-se que essa abordagem possui alguns problemas que a impede de ser funcional para qualquer
+imagem de olho:
+	- Caso a imagem do olho possua muita incidência de luz em outras regiões fora da íris, é possível que
+	a estimativa do flash seja errada (da forma como está implementado o código)
+	- Por não existir um threholding automático para a binarização da região da íris, é possível que essa
+	região não seja 100% fechada, comprometendo o preenchimento dessa.
+
+No mais, o algoritmo funciona muito bem para as imagens dadas e consegue dar o diagnóstico esperado para
+cada qual.
+*/
+int main(int argc, char *argv[]){
+	//pega informações da imagem 
 	ObjectImage *objectImage = newObjectImage(argc, argv);
 	Pixel **image = readImage(objectImage);
 
@@ -13,128 +54,65 @@ int main(int argc, char *argv[]){
 	//faz copia da imagem para ser usada posteriormente
 	Pixel **imageOrig = copyImage(image, objectImage->width, objectImage->height);
 	
+	//aplica gaussiano na imagem a ser tratada
 	applyGaussian(image, objectImage->width, objectImage->height);
 
-	//binariza a imagem com objetivo de separar pontos de luz
+
+	//------- INICIO: DETECÇÃO DA REGIÃO QUE CONTÉM A ÍRIS -------
+
+	//calula a intensidade máxima de pixel
 	int maxIntensity = getMaxPixelIntensity(image, objectImage->width, objectImage->height);
+
+	//binariza a imagem com um threshold alto para captar áreas de alta luminosidade, ou seja, possíveis flashs
 	int **binSpecImage = getBinImage(image, objectImage->width, objectImage->height, maxIntensity);
 
-	//binariza a imagem com objetivo de encontrar a área da íris
+	//binariza a imagem passando um threshold (negatico para inverter os valores) suficiente para pegar regiões de íris
 	int **binAreaImage = getBinImage(image, objectImage->width, objectImage->height, -70);
-	//image = createBinImage(binAreaImage, objectImage->width, objectImage->height);
-	//image = createBinImage(binSpecImage, objectImage->width, objectImage->height);
-	//writeImage(objectImage, image);
 
+	//estima o centro da iris com base n a posição do flash, já que esse, necessariamente, está contido na iris
 	Circle estimatedCenter = estimateCenter(binSpecImage, objectImage->width, objectImage->height);
-	free(binSpecImage);
 
+	//Caso o olho possua catarata, a região da íris possuirá um 'buraco' que irá atrapalhar no 
+	//cálculo do centro da iris, então é necessário preencher esse 'buraco'
 	fill (binAreaImage, estimatedCenter.x, estimatedCenter.y, 0, 1);
-	//image = createBinImage(binAreaImage, objectImage->width, objectImage->height);
-	//writeImage(objectImage, image);
 
-	/*
-	//DEBUG
-	int i, j;
-	for (i = 0; i < objectImage->height; i++){
-		for (j = 0; j < objectImage->width; j++){
-			if (i == estimatedCenter.y || j ==  estimatedCenter.x){
-				image[i][j].r = 255;
-				image[i][j].g = 0;
-				image[i][j].b = 0;
-
-
-			}
-		}
-	}
-	*/
-
-
+	//calcula o centro da iris
 	Circle irisCenter = fastFindCircle(binAreaImage, objectImage->width, objectImage->height, estimatedCenter);
-	free(binAreaImage);
 
+	//recorta da imagem original a regiao em que a iris está contida
 	Pixel **irisRegion = cropImage(imageOrig, &objectImage->width, &objectImage->height, irisCenter);
-	free(imageOrig);
+
+	//------- FIM: DETECÇÃO DA REGIÃO QUE CONTÉM A ÍRIS -------
+
+
+	//faz uma cópia da região da iris para futuros calculos
 	Pixel **imageFinal = copyImage(irisRegion, objectImage->width, objectImage->height);
 
-	//int **aaa = getBinImage(irisRegion, objectImage->width, objectImage->height, -70);
-	//irisRegion = createBinImage(aaa, objectImage->width, objectImage->height);
-
-	
-	/*
-	//DEBUG
-	for (i = 0; i < objectImage->height; i++){
-		for (j = 0; j < objectImage->width; j++){
-			if (i == irisCenter.y || j ==  irisCenter.x){
-				image[i][j].r = 0;
-				image[i][j].g = 255;
-				image[i][j].b = 0;
-
-
-			}
-		}
-	}
-	writeImage(objectImage, image);
-	*/
-
-	
+	//aplica o filtro sobel na região da iris para iniciar a detecção da pupila
 	applySobel(irisRegion, objectImage->width, objectImage->height);
-	int **edges = getBinImage(irisRegion, objectImage->width, objectImage->height, 10);
-	//irisRegion = createBinImage(edges, objectImage->width, objectImage->height);
-	//int w = countPixels(edges, objectImage->width, objectImage->height, 1);
-	//int b = countPixels(edges, objectImage->width, objectImage->height, 0);
-	//printf("w:%d  b:%d\n",w, b );
 
-	//int r =  0.9 * irisCenter.r;
-	//printf("%d\n", r);
+	//cria uma versão binária da imagem com sobel
+	int **edges = getBinImage(irisRegion, objectImage->width, objectImage->height, 10);
+	int **flashRegion = getBinImage(irisRegion, objectImage->width, objectImage->height, 60);
+
+
+	//calcula quantidade de pixels brancos e pretos para estabelecer uma relação com o raio máximo dos círculos
+	//internos à iris
 	int whitePixels = countPixels(edges, objectImage->width, objectImage->height, 1);
 	int blackPixels = objectImage->width*objectImage->height - whitePixels;
 	double kRmax = 1 - fmax(whitePixels - blackPixels, 0)/(objectImage->width*objectImage->height),
 		   kRmin = kRmax * 0.5;
-	printf("KRMAX %.2lf KRMIN %.2lf\n",kRmax*irisCenter.r, kRmin*irisCenter.r );
 
-	int **im = getBinImage(imageFinal, objectImage->width, objectImage->height, maxIntensity-5);	
-	//int **im = getBinImage(imageFinal, objectImage->width, objectImage->height, maxIntensity);	
-	//imageFinal = createBinImage(im, objectImage->width, objectImage->height);
-	writeImage(objectImage, imageFinal);
-
-	Circle iris = findCircle(edges, objectImage->width, objectImage->height, kRmin *  irisCenter.r, kRmax * irisCenter.r);
-	///////Circle flash = findCircle(edges, objectImage->width, objectImage->height, 5, 20);
+	Circle pupil = findCircle(edges, objectImage->width, objectImage->height, kRmin *  irisCenter.r, kRmax * irisCenter.r);
+	excludeOutsideCircle(flashRegion, objectImage->width, objectImage->height, pupil);
+	Circle flash = findCircle(flashRegion, objectImage->width, objectImage->height, kRmin * 0.16 * irisCenter.r, kRmin * 0.5 * irisCenter.r);
 	
-	////////drawCircle(imageFinal, objectImage->width, objectImage->height, flash, 1);
+	writeDiagnosis(*objectImage, cataractDiagnosis(imageFinal, pupil, flash), DIAGNOSIS_CATARACT_THRESHOLD);
 
-	/*
-	Circle flash = findCircle(im, objectImage->width, objectImage->height, kRmin*irisCenter.r*0.1,kRmin*0.5*irisCenter.r);
-	drawCircle(imageFinal, objectImage->width, objectImage->height, flash, 1);
-	*/
-
-	fillImage (imageFinal, iris, 200, getMediumPixel (imageFinal,iris));
-	applyGaussian(image, objectImage->width, objectImage->height);
-
-	drawCircle(imageFinal, objectImage->width, objectImage->height, iris, 1);
-	
+	drawCircle(imageFinal, objectImage->width, objectImage->height, pupil, 1, 0.1);
+	drawCircle(imageFinal, objectImage->width, objectImage->height, flash, 1, 1);
 
 	writeImage(objectImage, imageFinal);
 
-/*
-	printf("%d, %d\n", estimatedCenter.x, estimatedCenter.y);
-	Pixel **imageK = cropImage(imageB, &objectImage->width, &objectImage->height, estimatedCenter);
-	Pixel **imagecopia = copyImage(imageK, objectImage->width, objectImage->height);
-	applyGaussian(imageK, objectImage->width, objectImage->height);
-	applySobel(imageK, objectImage->width, objectImage->height);
-	int **binImage2 = getBinImage(imageK, objectImage->width, objectImage->height, 10);
-	//image = createBinImage(binImage, objectImage->width, objectImage->height);
-	
-	Circle c = findCircle(binImage2, objectImage->width, objectImage->height, 80,160);
-	
-	drawCircle(imagecopia, objectImage->width, objectImage->height, c, 1);
-	writeImage(objectImage, imagecopia);
-*/
-	
 	return 0;
-
-	//Circle c = {349, 439, 82}; //Catarata.ppm   1015X759 = 770385 (0.01064402863) 0.0163839089
-	//Circle c = {391, 490, 140}; //Catarata2.ppm 1198X770 = 922460 (0.01517680983)
-	//Circle c = {326, 371, 154}; //Normal.ppm    1167X739 = 862413 (0.01785687367)
-	//Circle c = {205, 239, 64}; //Normal2.ppm    610X480  = 292800 (0.02185792349)
-
 }

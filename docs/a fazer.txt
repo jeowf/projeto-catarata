@@ -1,5 +1,10 @@
 A FAZER
 
+Tratar erros
+Colocar método de leitura "legacy" caso dê problema, a prof so descomenta esse metodo
+Documentar
+Escrever README.txt
+
 EXTRAS
 
 Contorno RGB na pupila
@@ -10,17 +15,3 @@ Leituras extras
 	BMP
 Segmentação fo flash
 Otimização da transformada de Hough estimando centros da íris
-
-Finalizar detecção de circulos
-	Ajeitar a deteção com base na Normal2 (deixar de forma automarica)
-Segmentação da flash
-Threshold inteligente
-Leituras extras de arquivo
-tratamento de erros
-ver o role do histograma para classificar catarata
-
-Testar binarização crua na imagem preto e branco
-	-> detectar circulo por hough mesmo, so pra testar
-	-> dentro do circulo, detectar mais uma vez o circulo, que seria a pupila
-
-Documentação

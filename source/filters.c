@@ -58,8 +58,6 @@ void applyGaussian(Pixel **image, int width, int height){
 		}
 	}
 
-	free(imageOrig);
-
 	return;
 }
 
@@ -104,8 +102,6 @@ void applySobel(Pixel **image, int width, int height){
 		}
 	}
 
-	free(imageOrig);
-
 	return;
 }
 
@@ -143,6 +139,7 @@ Pixel** cropImage(Pixel **image, int *width, int *height, Circle c){
 
 }
 
+//SE N USAR, APAGAR ESSA FUNCAO
 void histogram(Pixel **image, int width, int height){
 	int i, j;
 	int a[256] = {0};
@@ -155,7 +152,7 @@ void histogram(Pixel **image, int width, int height){
 			a[(int) fmin(image[i][j].r, 255)]++;
 		}
 	}
-	//printf("asusanads\n");
+
 	for (i = 0; i < 256; i++){
 		printf("%d, %d\n", i, a[i]);
 		
@@ -190,7 +187,7 @@ int** getBinImage(Pixel **image, int width, int height, int threshold){
 	return binImage;
 }
 
-//metodo de debug
+//metodo de debug, lembrar de apagar
 Pixel** createBinImage(int **image, int width, int height){
 	int i, j,
 		w = 167, b = 8;
@@ -217,8 +214,6 @@ double getPercentual (int vTotal, int vCurrent){
 	return out;
 }
 
-//testar essa abordagem caso nao de em nada
-//http://laid.delanover.com/hough-transform-circle-detection-and-space-reduction/
 Circle findCircle(int **image, int width, int height, int rmin, int rmax){
 	double cosValues[360],
 		   sinValues[360];
@@ -248,11 +243,10 @@ Circle findCircle(int **image, int width, int height, int rmin, int rmax){
 	for (x = 0; x < height; x++){
 		for (y = 0; y < width; y++){
 
-			
 			//debug
 			aux++;
 			per = getPercentual(total, aux);
-			printf("\r%.2lf %%", per);
+			printf("\r%.2lf %%  ", per);
 			fflush(stdout);
 			//fimdebug
 
@@ -281,34 +275,9 @@ Circle findCircle(int **image, int width, int height, int rmin, int rmax){
 
 	aux = 0;
 	Circle c = {0, 0, 0};
-	/*
-	for (x = 0; x < height; x++){
-		for (y = 0; y < width; y++){
-			a = 0;
-
-			for (r = 0; r < rmag; r++){
-				a += A[x][y][r];	
-			}
-
-			if (a >= aux){
-				aux = a;
-				c.x = x;
-				c.y = y;
-			} 
-		}
-	}
-
-	for (r = 0; r < rmag; r++){
-		printf("R%d  V:%d\n", (r + rmin), A[c.x][c.y][r] );
-		if (A[c.x][c.y][r] > c.r)
-			c.r = r + rmin;	
-	}
-	*/
 	a = 0;
-	for (r = 0; r < rmag; r++){
-		//printf("R%d  V:%d\n", (r + rmin), A[c.x][c.y][r] );
-		
-		
+	for (r = 0; r < rmag; r++){	
+
 		for (x = 0; x < height; x++){
 			for (y = 0; y < width; y++){
 				if (A[x][y][r] > a){
@@ -319,36 +288,15 @@ Circle findCircle(int **image, int width, int height, int rmin, int rmax){
 				}
 			}
 		}
-		//printf("\nR:%d (%d) at x:%d y:%d", c.r, A[c.x][c.y][r], c.x, c.y);
-		//printf("\n{x:%d y:%d, R:%d}", c.x, c.y, c.r);
 
 	}
-
-	//DEBUG
-	//
-	/*
-	for (x = 0; x < height; x++){
-		for (y = 0; y < width; y++){
-
-			a = 0;
-			for (r = 0; r < rmag; r++){
-				a += A[x][y][r];	
-			}
-			image[x][y] = a;
-		}
-	}*/
-
-	//printf("\n%d", A[350][568][80]  );
-	printf("\nx:%d y:%d r:%d (%d)\n", c.x, c.y, c.r, aux);
 
 	return c;
 }
 
-void drawCircle (Pixel **image, int width, int height, Circle c, int margin){
+void drawCircle (Pixel **image, int width, int height, Circle c, int margin, float opacity){
 	double pi = 3.14;
 	int x, y, t, r; 
-	
-	float opacity = 1;//0.2;
 
 	for (x = 0; x < height; x++){
 		for (y = 0; y < width; y++){
@@ -382,46 +330,26 @@ void drawCircle (Pixel **image, int width, int height, Circle c, int margin){
 	return;
 }
 
-//DEBUG
-Pixel** plotImage (int **image, int width, int height){
-	int i, j, max = 0, a;
-	Pixel **imageRes = calloc(height,sizeof(Pixel));
-	for (i = 0; i < height; i++){
-		imageRes[i] = calloc(width,sizeof(Pixel));
-		for (j = 0; j< width; j++){
-			if (image[i][j] > max)
-				max = image[i][j];
-		}
-	}
 
-	for (i = 0; i < height; i++){
-		for (j = 0; j< width; j++){
-			a = (255*image[i][j])/max;
-			imageRes[i][j].r = a;
-			imageRes[i][j].g = a;
-			imageRes[i][j].b = a;
-		}
-	}
-	return imageRes;
-
-}
-
-double cataractDiagnosis (Pixel **image, Circle c){
+double cataractDiagnosis (Pixel **image, Circle pupil, Circle flash){
 	int i, j,
 		//pTotal = 0, //total 
 		cTotal = 0, //numero de pixels com catarata
 		nTotal = 0; //numero de pixels dentro do circulo
 
-	for (i = (c.x - c.r); i <= (c.x + c.r); i++){
-		for (j = (c.y - c.r); j <= (c.y + c.r); j++){
+	for (i = (pupil.x - pupil.r); i <= (pupil.x + pupil.r); i++){
+		for (j = (pupil.y - pupil.r); j <= (pupil.y + pupil.r); j++){
 			//se o pixel estiver dentro do circulo
-			if (sqrt(pow((i - c.x), 2) + pow((j - c.y), 2)) <= c.r){
-				if (image[i][j].r >= PIXEL_CATARACT_THRESHOLD)
+			if (sqrt(pow((i - pupil.x), 2) + pow((j - pupil.y), 2)) <= pupil.r &&
+				sqrt(pow((i - flash.x), 2) + pow((j - flash.y), 2)) > flash.r){
+				if (image[i][j].r > PIXEL_CATARACT_MIN_THRESHOLD &&
+					image[i][j].r < PIXEL_CATARACT_MAX_THRESHOLD)
 					cTotal++;
 				nTotal++;
 			}
 		}
 	}
+	printf("%.2lf\n", (double) cTotal/nTotal*100);
 	return (double) cTotal/nTotal*100;
 }
 
@@ -470,11 +398,11 @@ Circle fastFindCircle(int **image, int width, int height, Circle c){
 	iPosY = findEdge (image, c.x, c.y, v, 0, -1);
 	fPosY = findEdge (image, c.x, c.y, v, 0, 1);
 
-	printf("ix:%d fx:%d iy:%d fy:%d\n", iPosX, fPosX, iPosY, fPosY );
+	//printf("ix:%d fx:%d iy:%d fy:%d\n", iPosX, fPosX, iPosY, fPosY );
 
 	center.x = (iPosX + fPosX)/2;
 	center.y = (iPosY + fPosY)/2;
-	printf("(%d, %d)\n", center.x, center.y);
+	//printf("(%d, %d)\n", center.x, center.y);
 	center.r = fmax(distanceOfPoints(iPosX, c.y, center.x, center.y), 
 			   distanceOfPoints(c.x, iPosY, center.x, center.y));
 
@@ -500,6 +428,7 @@ void fill (int **image, int origX, int origY, int v1, int v2){
 
 }
 
+//DELETAR SE N USAR
 void fillImage (Pixel **image, Circle c, int threshold, int v){
 	//onde tiver threshold, ele preenche com v
 	int i, j,
@@ -577,6 +506,7 @@ int countPixels(int **image, int width, int height, int v){
 	return d;
 }
 
+//DELETAR SE N USAR
 int getMediumPixel (Pixel **image, Circle c){
 	int i, j,
 		vTotal = 0, //numero de pixels com catarata
@@ -592,10 +522,20 @@ int getMediumPixel (Pixel **image, Circle c){
 			
 		}
 	}
-	printf("%d\n", vTotal/nTotal);
+	//printf("%d\n", vTotal/nTotal);
 	return vTotal/nTotal;
 }
-//209
-//82
-//132
-//206
+
+void excludeOutsideCircle(int **image, int width, int height, Circle c){
+	int x, y;
+	for (x = 0; x < height; x++){
+		for (y = 0; y < width; y++){
+			if (x < (c.x - c.r) || x > (c.x + c.r) ||
+				y < (c.y - c.r) || y > (c.y + c.r)){
+				image[x][y] = 0;
+			} else if (sqrt(pow((x - c.x), 2) + pow((y - c.y), 2)) > c.r) {
+				image[x][y] = 0;
+			}
+		}
+	}
+}

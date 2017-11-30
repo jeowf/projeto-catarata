@@ -9,7 +9,8 @@ typedef enum {
 typedef struct {
 	char *source,
 		 *format,
-		 *destination;
+		 *destination,
+		 *out;
     int initialized,
     	width,
     	height;
@@ -34,12 +35,17 @@ Pixel** readPBM(ObjectImage *objectImage);
 /*Retorna uma imagem com base nos parâmetros passados (ObjectImage) do tipo pgm*/
 Pixel** readPGM(ObjectImage *objectImage);
 
+
+Pixel** readBMP(ObjectImage *objectImage);
+
 /*Cria um arquivo de imagem com base nos parâmentros passados (ObjectImage) e na imagem ppm*/
 void writePPM(ObjectImage *objectImage, Pixel **image);
 /*Cria um arquivo de imagem com base nos parâmentros passados (ObjectImage) e na imagem pgm*/
 void writePGM(ObjectImage *objectImage, Pixel **image);
 /*Cria um arquivo de imagem com base nos parâmentros passados (ObjectImage) e na imagem pbm*/
 void writePBM(ObjectImage *objectImage, Pixel **image);
+
+void writeBMP(ObjectImage *objectImage, Pixel **image);
 /*Carrega a imagem com base no formato -f*/
 Pixel** readImage(ObjectImage* objectImage);
 /*escreve imagem com base no formato -f*/
