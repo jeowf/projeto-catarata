@@ -60,8 +60,8 @@ ObjectImage* newObjectImage(int argc, char *argv[]){
 }
 
 Pixel** readPPM(ObjectImage *objectImage){
-	int i, j,mp;
-	char hash,line[70],header[70],eol;
+	int i, j;
+	char hash,line[70];
 	Pixel **image;
 
 	FILE *img; //variavel para ler as imagens;
@@ -72,61 +72,36 @@ Pixel** readPPM(ObjectImage *objectImage){
  		printf( "Erro na abertura do arquivo!\n" );
  	}else{
  		//PREPARAR METODO DE APAGAR COMENTARIOS
- 		//fgets(header,70,img);
- 		fscanf(img, "%s", header);
-
- 		fscanf(img, "%c", &eol);
- 
- 		//char *TESTE = jumpComment(img, '#');
- 		/*
- 		objectImage->width = atoi (jumpComment(img, '#'));
- 		printf("%d\n", objectImage->width );
- 		objectImage->height = atoi (jumpComment(img, '#'));
- 		printf("%d\n", objectImage->height );
-
- 		mp = atoi (jumpComment(img, '#'));*/
-
- 		jumpComment(img, '#');
- 		fscanf(img, "%d", &objectImage->width);
- 		jumpComment(img, '#');
-		fscanf(img, "%d", &objectImage->height);
-		jumpComment(img, '#');
-		fscanf(img, "%d", &mp);
-		if(strcmp(header, "P6") == 0){
-			fscanf(img, "%c", &eol);
+ 		while(hash != EOF){//enquanto a variavel hash for diferente de -1 ele ler o arquivo
+			if(hash == '#'){
+				fgets(line, 70, img);//lê uma linha inteira que começa com #
+				break;
+			}else{
+				hash = getc(img);//lê o proximo elemento do arquivo
+				if(hash == EOF){//caso n exista # no arquivo ele volta para o inicio e seta a leitura depois do 'P3';
+				fseek(img, 3, SEEK_SET);// seta a leitura a partir do 3º byte
+				}
+			}
 		}
+
 		//lê largura e altura da imagem
+		fscanf(img, "%d", &objectImage->width);
+		fscanf(img, "%d", &objectImage->height);
+		int mp;
+		fscanf(img, "%d", &mp);
 		//matriz pixel
 		image = calloc(objectImage->height,sizeof(Pixel));
 		for (i = 0; i < objectImage->height; i++)
 			image[i] = calloc(objectImage->width,sizeof(Pixel));
-
 		//preencher matriz de pixel com seus valores rgb
-		if(strcmp(header, "P3") == 0){
-			for (i = 0; i < objectImage->height; i++){
-				for (j = 0; j < objectImage->width; j++){
-				/*image[i][j].r = atoi(jumpComment(img, '#'));
-				image[i][j].g = atoi(jumpComment(img, '#'));
-				image[i][j].b = atoi(jumpComment(img, '#'));*/				
-						fscanf(img, "%d", &image[i][j].r);
-						fscanf(img, "%d", &image[i][j].g);
-						fscanf(img, "%d", &image[i][j].b);
-				}
-			}		
-		}else{
-				for (i = 0; i < objectImage->height; i++){
-					for (j = 0; j < objectImage->width; j++){
-				/*image[i][j].r = atoi(jumpComment(img, '#'));
-				image[i][j].g = atoi(jumpComment(img, '#'));
-				image[i][j].b = atoi(jumpComment(img, '#'));*/
-					fscanf(img, "%c", &image[i][j].r);
-					fscanf(img, "%c", &image[i][j].g);
-					fscanf(img, "%c", &image[i][j].b);
+		for (i = 0; i < objectImage->height; i++){
+			for (j = 0; j < objectImage->width; j++){
+				fscanf(img, "%d", &image[i][j].r);
+				fscanf(img, "%d", &image[i][j].g);
+				fscanf(img, "%d", &image[i][j].b);
 			}
 		}
 		
-		}
-	
 
 		//printf("p[%d][%d] - r:%d g:%d b:%d\n", 758, 1014, image[758][1014].r, image[758][1014].g, image[758][1014].b );
  	}

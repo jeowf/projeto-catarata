@@ -127,12 +127,10 @@ Pixel** cropImage(Pixel **image, int *width, int *height, Circle c){
 
 	for (i = verticalI; i < verticalF; i++){
 		for (j = horizontalI; j < horizontalF; j++){
-			//printf("i %d   j %d\n", (i-verticalI), (j-horizontalI) );
 			newImage[i-verticalI][j-horizontalI].r = image[i][j].r;
 			newImage[i-verticalI][j-horizontalI].g = image[i][j].g;
 			newImage[i-verticalI][j-horizontalI].b = image[i][j].b;
 		}
-		//printf("%d\n",(i-verticalI));
 	}
 
 
@@ -144,132 +142,6 @@ Pixel** cropImage(Pixel **image, int *width, int *height, Circle c){
 	return newImage;
 
 }
-
-/*
-Pixel** cropImage(Pixel **image, int *width, int *height){
-	///*int i, j,
-		h = 0, v = 0,
-		margin = abs((*width - *height)/2);
-
-	//calcula os limites da imagem com base na borda
-	if (*width > *height){
-		*width = *height + margin;
-		h = margin;
-	}
-	else{
-		*height = *width + margin;
-		v = margin;
-	}
-
-	int min = fmin(*height, *width);
-	Pixel **newImage = calloc(min, sizeof(Pixel*));
-	for (i = v; i < *height; i++){
-		newImage[i] = calloc(min, sizeof(Pixel));
-		for (j = h; j < *width; j++){
-			newImage[i-v][j-h].r = image[i][j].r;
-			newImage[i-v][j-h].g = image[i][j].g;
-			newImage[i-v][j-h].b = image[i][j].b;
-		}
-	}
-	
-	*width = min;
-	*height = min;
-
-	return newImage;//
-
-
-	//AQUI Q TA FUNFANDO, EM CIMA EH SO BACKUP
-	//criar região quadrada no centro da imagem
-	int i, j, x = 350,
-		h = 0, v = 0,
-		margin = abs((*width - *height)/2);
-	*width -= x;
-	*height -= x;
-	int horizontal = 250;
-	int vertical = 160;
-
-	//calcula os limites da imagem com base na borda
-	if (*width > *height){
-		*width = *height + margin;
-		h = margin;
-	} else{
-		*height = *width + margin;
-		v = margin;
-	}
-
-	int min = fmin(*height, *width);
-	Pixel **newImage = calloc(min, sizeof(Pixel*));
-	for (i = v + vertical; i < *height + vertical ; i++){
-		newImage[i-v-vertical] = calloc(min, sizeof(Pixel));
-		for (j = h + horizontal; j < *width + horizontal; j++){
-			newImage[i-v-vertical][j-h-horizontal].r = image[i][j].r;
-			newImage[i-v-vertical][j-h-horizontal].g = image[i][j].g;
-			newImage[i-v-vertical][j-h-horizontal].b = image[i][j].b;
-		}
-	}
-	*width = min;
-	*height = min;
-
-	return newImage;
-
-}*/
-
-/*
-int** getBinImage(Pixel **image, int width, int height, int threshold){
-	int i, j;
-	int a[256] = {0};
-	for (i = 0; i < height; i++){
-		for (j = 0; j < width; j++){
-			a[image[i][j].r]++;
-		}
-	}
-	printf("opacity\n");
-	for (i = 0; i < 256; i++){
-		printf("%d, %d\n", i, a[i]);
-		
-	}
-	int **binImage = calloc (height, sizeof(int));
-	for (i = 0; i < height; i++)
-		binImage[i] = calloc(width, sizeof(int));
-	/*
-	int i, j, k, l,
-		posX, posY, valueXY;
-	
-	//
-	int **binImage = calloc (height, sizeof(int));
-	for (i = 0; i < height; i++)
-		binImage[i] = calloc(width, sizeof(int));
-
-	//
-	for (i = 0; i < height; i++){
-		for (j = 0; j < width; j++){
-			if (i > 0 && i < height-1 && 
-				j > 0 && j < width-1){
-
-				valueXY = image[i][j].r;
-				for (k = i-1; k <= i+1; k++){
-					for (l = j-1; l <= j+1; l++){
-						if (image[i][j].r <= valueXY){
-							valueXY = image[i][j].r;
-							posY = i+k;
-							posX = j+l;
-						}
-
-					}
-				}
-				//printf("%d\n", valueXY);
-
-				binImage[posY][posX] = 1;
-
-			}
-			printf("i: %d   j: %d\n", i, j);
-		}
-
-	}
-
-	return binImage;
-}
-*/
 
 void histogram(Pixel **image, int width, int height){
 	int i, j;
@@ -476,7 +348,7 @@ void drawCircle (Pixel **image, int width, int height, Circle c, int margin){
 	double pi = 3.14;
 	int x, y, t, r; 
 	
-	float opacity = 0.2;
+	float opacity = 1;//0.2;
 
 	for (x = 0; x < height; x++){
 		for (y = 0; y < width; y++){
@@ -587,6 +459,142 @@ Circle estimateCenter(int **image, int width, int height){
 	return c;
 }
 
+Circle fastFindCircle(int **image, int width, int height, Circle c){
+
+	int a = 0, aux = 0, v = 0,
+		iPosX, fPosX, iPosY, fPosY;
+	Circle center = {0,0,0};
+
+	iPosX = findEdge (image, c.x, c.y, v, -1, 0);
+	fPosX = findEdge (image, c.x, c.y, v, 1, 0);
+	iPosY = findEdge (image, c.x, c.y, v, 0, -1);
+	fPosY = findEdge (image, c.x, c.y, v, 0, 1);
+
+	printf("ix:%d fx:%d iy:%d fy:%d\n", iPosX, fPosX, iPosY, fPosY );
+
+	center.x = (iPosX + fPosX)/2;
+	center.y = (iPosY + fPosY)/2;
+	printf("(%d, %d)\n", center.x, center.y);
+	center.r = fmax(distanceOfPoints(iPosX, c.y, center.x, center.y), 
+			   distanceOfPoints(c.x, iPosY, center.x, center.y));
+
+	return center;
+}
+
+void fill (int **image, int origX, int origY, int v1, int v2){
+	//onde tiver v1, ele preenche com v2
+	if (image[origY][origX] == v1)
+		image[origY][origX] = v2;
+
+	if (image[origY][origX+1] == v1)
+		fill (image, origX+1, origY, v1, v2);
+
+	if (image[origY][origX-1] == v1)
+		fill (image, origX-1, origY, v1, v2);
+
+	if (image[origY+1][origX] == v1)
+		fill (image, origX, origY+1, v1, v2);
+
+	if (image[origY-1][origX] == v1)
+		fill (image, origX, origY-1, v1, v2);
+
+}
+
+void fillImage (Pixel **image, Circle c, int threshold, int v){
+	//onde tiver threshold, ele preenche com v
+	int i, j,
+		vTotal = 0, //numero de pixels com catarata
+		nTotal = 0; //numero de pixels dentro do circulo
+
+	for (i = (c.x - c.r); i <= (c.x + c.r); i++){
+		for (j = (c.y - c.r); j <= (c.y + c.r); j++){
+			//se o pixel estiver dentro do circulo
+			if (sqrt(pow((i - c.x), 2) + pow((j - c.y), 2)) < c.r-1){
+				if (image[i][j].r >= threshold){
+					image[i][j].r = v;
+					image[i][j].g = v;
+					image[i][j].b = v;
+				
+				}
+			}
+		}
+	}
+
+}
+
+int findEdge (int **image, int origX, int origY, int value, int horizontal, int vertical){
+	int aux = 0, range = 6;
+
+	if (horizontal != 0){
+		while ((image[origY][origX + horizontal*aux] != value) && (aux < origX)){
+			aux++;
+		}
+
+		return (origX + horizontal*aux);
+	}
+
+	if (vertical != 0){
+		while ((image[origY + vertical*aux][origX] != value) && (aux < origY)){
+			aux++;
+		}
+
+		return (origY + vertical*aux);
+	}
+
+	return 0;
+	
+	//iPosX = c.x - aux;
+}
+
+int distanceOfPoints(int x1, int y1, int x2, int y2){
+	int d = (int) sqrt(pow((x1-x2),2) + pow((y1-y2),2));
+	return d;
+}
+
+int getMaxPixelIntensity(Pixel **image, int width, int height){
+	int i, j, d = 0;
+	for (i = 0; i < height; i++){
+		for (j = 0; j < width; j++){
+			if (image[i][j].r > d){
+				d = image[i][j].r;
+			}
+			if (d == 255){
+				return d; 
+			}
+		}
+	}
+	return d;
+}
+
+int countPixels(int **image, int width, int height, int v){
+	int i, j, d = 0;
+	for (i = 0; i < height; i++){
+		for (j = 0; j < width; j++){
+			if (image[i][j] == v)
+				d++;
+		}
+	}
+	return d;
+}
+
+int getMediumPixel (Pixel **image, Circle c){
+	int i, j,
+		vTotal = 0, //numero de pixels com catarata
+		nTotal = 0; //numero de pixels dentro do circulo
+
+	for (i = (c.x - c.r); i <= (c.x + c.r); i++){
+		for (j = (c.y - c.r); j <= (c.y + c.r); j++){
+			//se o pixel estiver dentro do circulo
+			if (sqrt(pow((i - c.x), 2) + pow((j - c.y), 2)) <= c.r){
+				vTotal+=image[i][j].r;
+				nTotal++;
+			}
+			
+		}
+	}
+	printf("%d\n", vTotal/nTotal);
+	return vTotal/nTotal;
+}
 //209
 //82
 //132

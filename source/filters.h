@@ -46,3 +46,21 @@ double cataractDiagnosis (Pixel **image, Circle c);
 Circle estimateCenter(int **image, int width, int height);
 
 void histogram(Pixel **image, int width, int height);
+
+Circle fastFindCircle(int **image, int width, int height, Circle c);
+
+int distanceOfPoints(int x1, int y1, int x2, int y2);
+
+int findEdge (int **image, int origX, int origY, int value, int horizontal, int vertical);
+
+int isEdgeValid(int **image, int origX, int origY, int value, int horizontal, int vertical, int range);
+
+int getMaxPixelIntensity(Pixel **image, int width, int height);
+
+void fill (int **image, int origX, int origY, int v1, int v2);
+
+void fillImage (Pixel **image, Circle c, int threshold, int v);
+
+int countPixels(int **image, int width, int height, int v);
+
+int getMediumPixel (Pixel **image, Circle c);
