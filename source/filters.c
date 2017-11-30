@@ -530,9 +530,12 @@ int** excludeOutsideCircle(int **image, int width, int height, Circle c){
 	for (y = 0; y < height; y++){
 		outImage[y] = calloc(width, sizeof(int));
 		for (x = 0; x < width; x++){
-			if (sqrt(pow((x - c.x), 2) + pow((y - c.y), 2)) < c.r) {
+			//if (sqrt(pow((x - c.x), 2) + pow((y - c.y), 2)) < c.r) {
+			//	outImage[y][x] = image[y][x];
+			//}
+			if ( (x > c.x-c.r) && (x < c.x+c.r) && (y > c.y-c.r) && (y < c.y+c.r)) 
 				outImage[y][x] = image[y][x];
-			} 
+
 		}
 	}
 	return outImage;

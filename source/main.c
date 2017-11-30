@@ -126,7 +126,7 @@ int main(int argc, char *argv[]){
 
 	//exclui os pixels fora da pupila para evitar erros na detecção do flash
 	flashRegion = excludeOutsideCircle(flashRegion, objectImage->width, objectImage->height, pupil);
-
+	
 	//procura o flash
 	Circle flash = findCircle(flashRegion, objectImage->width, objectImage->height, kRmin * 0.16 * irisCenter.r, kRmin * 0.5 * irisCenter.r);
 
