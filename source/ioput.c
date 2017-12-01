@@ -179,7 +179,7 @@ Pixel** readPGM(ObjectImage *objectImage){
 		//lê largura e altura da imagem e pixel máximo
 		jumpComment(img, '#');
 		fscanf(img, "%d", &objectImage->width);
-
+		
 		jumpComment(img, '#');
 		fscanf(img, "%d", &objectImage->height);
 
