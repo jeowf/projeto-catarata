@@ -3,9 +3,9 @@
 void jumpComment(FILE *file, char c){
 	char hash, line[70];
 	hash= fgetc(file);
-	//printf("%c\n", hash);
-
+	//percorre o arquivo de imagem
 	if (hash == c){
+		//coloca leitor no fim da linha caso seja comentario
 		fgets(line, 70, file);
 		jumpComment(file, c);
 	} else {
@@ -27,6 +27,7 @@ Pixel** readImage(ObjectImage *objectImage){
 //procura uma palavra num array de palavras
 int searchWord(char *words[], char *word, int t){
 	int i;
+	//pecorre o vetor e devolve a posição no vetor
 	for (i = 0; i < t; i++){
 		if (strcmp(words[i], word) == 0)
 			return i;
@@ -36,23 +37,24 @@ int searchWord(char *words[], char *word, int t){
 //retorna um o objectImage com seus parametros preenchidos.
 ObjectImage* newObjectImage(int argc, char *argv[]){
 	ObjectImage *objectImage = calloc(1, sizeof(ObjectImage));
+	//verifica a quanidade de parametros
 	if (argc != 7){
 		objectImage->initialized = false;
 		fprintf(stderr, "Há parâmetros faltando.\n");
 		exit(0);
 	} else {
-		objectImage->source      = argv[searchWord(argv, "-i", argc) + 1];
-		objectImage->format      = argv[searchWord(argv, "-f", argc) + 1];
-		objectImage->destination = argv[searchWord(argv, "-o", argc) + 1];
-		objectImage->out		 = "out.ppm";
+		objectImage->source      = argv[searchWord(argv, "-i", argc) + 1];//caminho da imagem
+		objectImage->format      = argv[searchWord(argv, "-f", argc) + 1];//formato
+		objectImage->destination = argv[searchWord(argv, "-o", argc) + 1];//diagnóstico
+		objectImage->out		 = "out.ppm";//imagem ppm gerada no fim
 		objectImage->initialized = true;
 	}
 	return objectImage;
 }
 //lê uma imagem no formato PPM (P6 OU P3) e retorna uma matriz de pixels
 Pixel** readPPM(ObjectImage *objectImage){
-	int i, j,mp;
-	char hash,line[70],header[70],eol;
+	int i, j,mp;//contadores e pixel máximo
+	char hash,line[70],header[70],eol;//auxiliares
 	Pixel **image;
 
 	FILE *img; //variavel para ler as imagens;
@@ -63,17 +65,17 @@ Pixel** readPPM(ObjectImage *objectImage){
 		fprintf(stderr, "Erro na abertura de arquivo.\n");
 		exit(0);
 	}else{
-		fscanf(img, "%s", header);
+		fscanf(img, "%s", header);//lê o tipo de imagem
 
-		fscanf(img, "%c", &eol);
- 		//lê largura e altura da imagem
+		fscanf(img, "%c", &eol);//pula o '\n'
+ 		//lê largura,altura  e pixel máximo da imagem
 		jumpComment(img, '#');
 		fscanf(img, "%d", &objectImage->width);
 		jumpComment(img, '#');
 		fscanf(img, "%d", &objectImage->height);
 		jumpComment(img, '#');
 		fscanf(img, "%d", &mp);
-		if(strcmp(header, "P6") == 0){
+		if(strcmp(header, "P6") == 0){//pula mais um '\n' para imagens binárias
 			fscanf(img, "%c", &eol);
 		}
 
@@ -90,6 +92,7 @@ Pixel** readPPM(ObjectImage *objectImage){
 		if(strcmp(header, "P3") == 0){
 			for (i = 0; i < objectImage->height; i++){
 				for (j = 0; j < objectImage->width; j++){
+					//atribui 3 bytes a um pixel(RGB)
 					fscanf(img, "%d", &image[i][j].r);
 					fscanf(img, "%d", &image[i][j].g);
 					fscanf(img, "%d", &image[i][j].b);
@@ -112,8 +115,8 @@ Pixel** readPPM(ObjectImage *objectImage){
 }
 //lê uma imagem no formato PBM (P1) e retorna uma matriz de pixels
 Pixel** readPBM(ObjectImage *objectImage){
-	int i, j;
-	char hash,line[70];
+	int i, j;//contador
+	char hash,line[70];//auxiliares
 	Pixel **image;
 
 	FILE *img; //variavel para ler as imagens;
@@ -125,7 +128,7 @@ Pixel** readPBM(ObjectImage *objectImage){
 		exit(0);
 	}else{
 		fgets(line, 70, img);
-
+		//altura e largura
 		jumpComment(img, '#');
 		fscanf(img, "%d", &objectImage->width);
 		jumpComment(img, '#');
@@ -139,12 +142,12 @@ Pixel** readPBM(ObjectImage *objectImage){
 			for (i = 0; i < objectImage->height; i++)
 			image[i] = calloc(objectImage->width,sizeof(Pixel));
 		}
-		//preencher matriz de pixel com seus valores rgb
+		//preencher matriz de pixel com seus valores rgb com 0 ou 255;
 		for (i = 0; i < objectImage->height; i++){
 			for (j = 0; j < objectImage->width; j++){
 				int byte;
 				fscanf(img, "%1d", &byte);
-				if(byte == 0){
+				if(byte == 0){//atribui branco e preto aos pixels
 					image[i][j].r = 255;
 					image[i][j].g = 255;
 					image[i][j].b = 255;
@@ -173,10 +176,10 @@ Pixel** readPGM(ObjectImage *objectImage){
 		fprintf(stderr, "Erro na abertura de arquivo.\n");
 		exit(0);
 	}else{
-
+		//pega a informação se é binaria ou não
 		fscanf(img, "%s", header);
 
-		fscanf(img, "%c", &eol);
+		fscanf(img, "%c", &eol);//pula '\n'
 
 		//lê largura e altura da imagem e pixel máximo
 		jumpComment(img, '#');
@@ -202,17 +205,24 @@ Pixel** readPGM(ObjectImage *objectImage){
 			if(strcmp(header, "P2") == 0){
 			for (i = 0; i < objectImage->height; i++){
 				for (j = 0; j < objectImage->width; j++){
-					fscanf(img, "%d", &image[i][j].r);
-					fscanf(img, "%d", &image[i][j].g);
-					fscanf(img, "%d", &image[i][j].b);
+					int byte = 0;
+					//lê o byte e replica pro RGB
+					fscanf(img, "%d", &byte);
+					image[i][j].r = byte;
+					image[i][j].g = byte;
+					image[i][j].b = byte;
+
 				}
 			}		
 		}else{
 			for (i = 0; i < objectImage->height; i++){
 				for (j = 0; j < objectImage->width; j++){
-					fscanf(img, "%c", &image[i][j].r);
-					fscanf(img, "%c", &image[i][j].g);
-					fscanf(img, "%c", &image[i][j].b);
+					int byte = 0;
+					//lê o byte em char e depois replica o valor inteiro pro RGB
+					fscanf(img, "%c", &byte);
+					image[i][j].r = byte;
+					image[i][j].g = byte;
+					image[i][j].b = byte;
 				}
 			}
 
@@ -225,8 +235,8 @@ Pixel** readPGM(ObjectImage *objectImage){
 }
 //lê uma imagem no formato BMP e retorna uma matriz de pixels
 Pixel** readBMP(ObjectImage *objectImage){
-	int i, j,mp;
-	char hash,line[70],header [70],eol;
+	int i, j,mp;// contadores e pixel máximo
+	char hash,line[70],header [70],eol;//auxliares 
 	Pixel **image,**teste;
 
 	FILE *img; //variavel para ler as imagens;
@@ -239,13 +249,14 @@ Pixel** readBMP(ObjectImage *objectImage){
 	}else{
 		//lê o cabeçalho do arquivo
 		fseek(img, 18, SEEK_SET); 
+		//lê altura e largura
 		fread(&objectImage->width, sizeof(int), 1,img); 
 		fread(&objectImage->height, sizeof(int), 1, img);
-		//seta a leitura para o ultimo byte do cabeçalho 
+		//coloca o poteiro de leitura para o ultimo byte do cabeçalho 
 		fseek(img,96, SEEK_CUR);
 		int up=0;
 		int padding = objectImage->width % 4;
-
+		//aloca a matriz de pixels
 		image = calloc(objectImage->height,sizeof(Pixel));
 		if (image == NULL){
 			fprintf(stderr, "Erro na alocação dinamica.\n");
@@ -285,7 +296,6 @@ void writeImage(ObjectImage *objectImage, Pixel **image){
 		"P3", 
 		objectImage->width, 
 		objectImage->height);
-	//printf("p[%d][%d] - r:%d g:%d b:%d\n", 758, 1014, image[758][1014].r, image[758][1014].g, image[758][1014].b );
 	
 	for (i = 0; i < objectImage->height; i++){
 		for (j = 0; j < objectImage->width; j++){
@@ -303,6 +313,7 @@ void writeImage(ObjectImage *objectImage, Pixel **image){
 void writeDiagnosis(ObjectImage objectImage, double v, double threshold){
 	FILE *file; 
 	file = fopen(objectImage.destination,"w");
+	//verifica se a porcentagem é maior q o limiar
 	if (v >= threshold)
 		fprintf(file, "O olho POSSUI catarata (%.2lf %% de comprometimento da pupila).\n", v);
 	else
