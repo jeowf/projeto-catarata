@@ -1,4 +1,3 @@
-//#include "ioput.h"
 #include "filters.h"
 #include <stdio.h>
 
@@ -52,7 +51,7 @@ int main(int argc, char *argv[]){
 
 	/*
 	ATENÇÃO: 
-	Dependendo do sistema operaional ou versão do GCC, pode ocorrer alguns problemas na leitura da imagem que
+	Dependendo do sistema operacional ou versão do GCC, pode ocorrer alguns problemas na leitura da imagem que
 	irão ocasionar na falha da alocação da imagem.
 	Nesse caso, comente a linha de código acima e descomente a de baixo.
 	*/
@@ -107,7 +106,6 @@ int main(int argc, char *argv[]){
 	//cria uma versão binária da imagem (região da íris) com sobel, porém com um threshold maior, para
 	//obter as arestas dos círculos que irão compor o flash
 	int **flashRegion = getBinImage(irisRegion, objectImage->width, objectImage->height, 60);
-	//printf("%d\n", flashRegion[98][1]);
 
 	//escreve a imagem enquanto essa será processada (apenas um debug útil)
 	writeImage(objectImage, imageFinal);

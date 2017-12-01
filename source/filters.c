@@ -1,24 +1,40 @@
 #include "filters.h"
 #include <math.h>
 
+//Realiza uma cópia da imagem passada por parâmetro
 Pixel** copyImage(Pixel **image, int width, int height){
-	int i, j;
-	Pixel **newImage = calloc(height,sizeof(Pixel));
+	int i, j; //contadores
+	Pixel **newImage = calloc(height,sizeof(Pixel)); //nova imagem
+
+	//verifica se houve erro na alocação
+	if (newImage == NULL){
+		fprintf(stderr, "Falha de alocação\n");
+		exit(0);
+	}
+
+	//aloca a nova imagem, copiando para si os valores da imagem passada por parâmetro
 	for (i = 0; i < height; i++){
 		newImage[i] = calloc(width,sizeof(Pixel));
 		for (j = 0; j< width; j++)
 			newImage[i][j] = image[i][j];
 	}
+
 	return newImage;
 }
 
+//Aplica o filtro de escala cinza à imagem passada por parâmetro
 void applyGrayScale(Pixel **image, int width, int height){
-	int i, j;
+	int i, j; //contadores
+
+	//percorre a imagem
 	for (i = 0; i < height; i++){
 		for (j = 0; j < width; j++){
+			//calcula o valor cinza do pixel
 			int pixelValue = image[i][j].r * 0.30 +
 							 image[i][j].g * 0.59 +
-							 image[i][j].b * 0.11 ;	
+							 image[i][j].b * 0.11 ;
+
+			//atribui o valor calculado aos canais RGB da imagem	
 			image[i][j].r = pixelValue;
 			image[i][j].g = pixelValue;
 			image[i][j].b = pixelValue;
@@ -27,23 +43,29 @@ void applyGrayScale(Pixel **image, int width, int height){
 }
 
 void applyGaussian(Pixel **image, int width, int height){
-	int x, y, a, b,
-		tam = 5,
-		m = tam/2,
-		weight = 159,
+	int x, y, a, b, //contadores
+		tam = 5, //tamanho da mascara
+		m = tam/2, //delimitações da mascara
+		weight = 159, //peso da mascara
+		//mascara gaussiana
 		mask[5][5] = {{2, 4, 5, 4, 2},
 					  {4, 9, 12, 9, 4},
 					  {5, 12, 15, 12, 5},
 					  {4, 9, 12, 9, 4},
 					  {2, 4, 5, 4, 2}};
 
+	//realiza uma cópia da imagem passada por parâmetro para usá-la nos cálculos
 	Pixel **imageOrig = copyImage(image, width, height);
+
+	//percorre a imagem
 	for (x = 0 + 2; x < height - 2; x++){
 		for (y = 0 + 2; y < width - 2; y++){
 			
+			//verifica os pixels da vizinhança com base no tamanho da máscara
 			for (a = -m; a <= m; a++){
 				for (b = -m; b <= m; b++){
-					
+					//calcula o valor do novo pixel com base nos pesos da máscara
+					//multiplicando os pixels da vizinhança
 					image[x][y].r += mask[a+m][b+m]*imageOrig[x+a][y+b].r;
 					image[x][y].g += mask[a+m][b+m]*imageOrig[x+a][y+b].g;
 					image[x][y].b += mask[a+m][b+m]*imageOrig[x+a][y+b].b;
@@ -51,6 +73,7 @@ void applyGaussian(Pixel **image, int width, int height){
 				}
 			}
 
+			//divide o valor do pixel pelo peso total da máscara
 			image[x][y].r /= weight;
 			image[x][y].g /= weight;
 			image[x][y].b /= weight;
@@ -65,39 +88,49 @@ void applySobel(Pixel **image, int width, int height){
 	int x, y, a, b,
 		tam = 3,
 		m = tam/2,
+		//mascara horizontal
 		maskx[3][3] = {{-1, 0, 1},
 					  {-2, 0, 2},
 					  {-1, 0, 1}},
+		//mascara vertical
 		masky[3][3] = {{1, 2, 1},
 					  {0, 0, 0},
 					  {-1, -2, -1}};
-	Pixel gx, gy, g;
+	Pixel gx, gy, g; //pixels auxiliares
 
+	//realiza uma cópia da imagem passada por parâmetro para usá-la nos cálculos
 	Pixel **imageOrig = copyImage(image, width, height);
+
+	//percorre a imagem
 	for (x = 0 + 1; x < height - 1; x++){
 		for (y = 0 + 1; y < width - 1; y++){
 			
+			//reseta o valor dos pixels auxiliares
 			gx.r = 0; gx.b = 0; gx.g = 0;
 			gy.r = 0; gy.b = 0; gy.g = 0;
 
+			//calcula o valor do novo pixel com base nos pesos da máscara
+			//multiplicando os pixels da vizinhança
 			for (a = -m; a <= m; a++){
 				for (b = -m; b <= m; b++){
-					
+					//calcula as arestas horizontais
 					gx.r += maskx[a+m][b+m]*imageOrig[x+a][y+b].r;
 					gx.g += maskx[a+m][b+m]*imageOrig[x+a][y+b].g;
 					gx.b += maskx[a+m][b+m]*imageOrig[x+a][y+b].b;
 
+					//calcula as arestas verticais
 					gy.r += masky[a+m][b+m]*imageOrig[x+a][y+b].r;
 					gy.g += masky[a+m][b+m]*imageOrig[x+a][y+b].g;
 					gy.b += masky[a+m][b+m]*imageOrig[x+a][y+b].b;
 				}
 			}
 
-
+			//calcula a magnitude do novo pixel
 			g.r = sqrt(gx.r*gx.r + gy.r*gy.r);
 			g.g = sqrt(gx.g*gx.g + gy.g*gy.g);
 			g.b = sqrt(gx.b*gx.b + gy.b*gy.b);
 
+			//substitui o pixel calculado pelo respectivo pixel na imagem passada como parâmetro
 			image[x][y] = g;
 		}
 	}
@@ -105,16 +138,16 @@ void applySobel(Pixel **image, int width, int height){
 	return;
 }
 
+//Recorta a imagem passada como parâmetro na região base no círculo passado como parâmetro
 Pixel** cropImage(Pixel **image, int *width, int *height, Circle c){
-	//c.r = 105; //para normal2
-	int i, j,
-		size = c.r * 2 ; 
-
 	
-	int verticalI 	= c.y - c.r,
-		verticalF 	= c.y + c.r,
-		horizontalI = c.x - c.r,
-		horizontalF = c.x + c.r;
+	int i, j,
+		size = c.r * 2; //tamanho dos lados da nova imagem
+	
+	int verticalI 	= c.y - c.r, //valor mínimo Y da nova imagem
+		verticalF 	= c.y + c.r, //valor máximo Y da nova imagem
+		horizontalI = c.x - c.r, //valor mínimo X da nova imagem
+		horizontalF = c.x + c.r; //valor máximo X da nova imagem
 
 	Pixel **newImage = calloc(size, sizeof(Pixel*));
 	if (newImage == NULL){
@@ -137,7 +170,6 @@ Pixel** cropImage(Pixel **image, int *width, int *height, Circle c){
 	
 	*width = size;
 	*height = size;
-	//printf("%d %d\n", *width, *height);
 
 	return newImage;
 
@@ -169,7 +201,7 @@ void histogram(Pixel **image, int width, int height){
 int** getBinImage(Pixel **image, int width, int height, int threshold){
 	int i, j,
 		**binImage = calloc (height, sizeof(int));
-		if (binImage == NULL){
+	if (binImage == NULL){
 		fprintf(stderr, "Falha de alocação\n");
 		exit(0);
 	}
@@ -345,7 +377,6 @@ void drawCircle (Pixel **image, int width, int height, Circle c, int margin, flo
 
 double cataractDiagnosis (Pixel **image, Circle pupil, Circle flash){
 	int i, j,
-		//pTotal = 0, //total 
 		cTotal = 0, //numero de pixels com catarata
 		nTotal = 0; //numero de pixels dentro do circulo
 
@@ -368,7 +399,7 @@ Circle estimateCenter(int **image, int width, int height){
 	int x, y, max, i, j, aux,
 		*horizontalProjection = calloc(width, sizeof(int)),
 		*verticalProjection = calloc(height, sizeof(int));
-		if (verticalProjection == NULL || horizontalProjection == NULL){
+	if (verticalProjection == NULL || horizontalProjection == NULL){
 		fprintf(stderr, "Falha de alocação\n");
 		exit(0);
 	}
@@ -413,11 +444,11 @@ Circle fastFindCircle(int **image, int width, int height, Circle c){
 	iPosY = findEdge (image, c.x, c.y, v, 0, -1);
 	fPosY = findEdge (image, c.x, c.y, v, 0, 1);
 
-	//printf("ix:%d fx:%d iy:%d fy:%d\n", iPosX, fPosX, iPosY, fPosY );
+
 
 	center.x = (iPosX + fPosX)/2;
 	center.y = (iPosY + fPosY)/2;
-	//printf("(%d, %d)\n", center.x, center.y);
+
 	center.r = fmax(distanceOfPoints(iPosX, c.y, center.x, center.y), 
 			   distanceOfPoints(c.x, iPosY, center.x, center.y));
 
@@ -543,7 +574,7 @@ int getMediumPixel (Pixel **image, Circle c){
 int** excludeOutsideCircle(int **image, int width, int height, Circle c){
 	int x, y,
 		**outImage = calloc(height, sizeof(int*));
-		if (outImage == NULL){
+	if (outImage == NULL){
 		fprintf(stderr, "Falha de alocação\n");
 		exit(0);
 	}

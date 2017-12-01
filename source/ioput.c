@@ -38,6 +38,8 @@ ObjectImage* newObjectImage(int argc, char *argv[]){
 	ObjectImage *objectImage = calloc(1, sizeof(ObjectImage));
 	if (argc != 7){
 		objectImage->initialized = false;
+		fprintf(stderr, "Há parâmetros faltando.\n");
+		exit(0);
 	} else {
 		objectImage->source      = argv[searchWord(argv, "-i", argc) + 1];
 		objectImage->format      = argv[searchWord(argv, "-f", argc) + 1];
@@ -250,7 +252,7 @@ Pixel** readBMP(ObjectImage *objectImage){
 			exit(0);
 		}else{
 			for (i = 0; i < objectImage->height; i++)
-			image[i] = calloc(objectImage->width,sizeof(Pixel));
+				image[i] = calloc(objectImage->width,sizeof(Pixel));
 		}
 		//faz a leitura dos pixels de baixo para cima e da esquerda para a direita
 		for (i = objectImage->height - 1; i >=0; i--){
