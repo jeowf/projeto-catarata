@@ -19,6 +19,8 @@ Para recompilar o código (caso necessário):
 Para executar o programa (a ordem dos parâmetros não ocasiona em erros)
  $ ./catarata -i <caminho/imagem.formato> -f <formato> -o <caminho/diagnostico.txt>
 
+PS: Dependendo do sistema (encontramos esse problema no Windows), o método de leitura de imagem pode não pular determinados carateres e obter dimensões erradas. Nesse caso, há uma linha a ser decomentada no main.c.
+
 
 
 O QUE FOI FEITO (FUNCIONALIDADES)
