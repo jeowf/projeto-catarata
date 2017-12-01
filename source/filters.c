@@ -140,8 +140,7 @@ void applySobel(Pixel **image, int width, int height){
 
 //Recorta a imagem passada como parâmetro na região base no círculo passado como parâmetro
 Pixel** cropImage(Pixel **image, int *width, int *height, Circle c){
-	
-	int i, j,
+	int i, j, //contadores
 		size = c.r * 2; //tamanho dos lados da nova imagem
 	
 	int verticalI 	= c.y - c.r, //valor mínimo Y da nova imagem
@@ -149,25 +148,31 @@ Pixel** cropImage(Pixel **image, int *width, int *height, Circle c){
 		horizontalI = c.x - c.r, //valor mínimo X da nova imagem
 		horizontalF = c.x + c.r; //valor máximo X da nova imagem
 
-	Pixel **newImage = calloc(size, sizeof(Pixel*));
+	Pixel **newImage = calloc(size, sizeof(Pixel*)); //nova imagem
+
+	//verifica se houve erro na alocação de memoria
 	if (newImage == NULL){
 		fprintf(stderr, "Falha de alocação\n");
 		exit(0);
 	}
+
+	//termina de alocar a imagem
 	for (i = verticalI; i < verticalF; i++){
 		newImage[i-verticalI] = calloc(size, sizeof(Pixel));
 	}
 
+	//percorre a imagem recortada entre seus limites
 	for (i = verticalI; i < verticalF; i++){
 		for (j = horizontalI; j < horizontalF; j++){
+
+			//copia os pixels da imagem maior para a menor
 			newImage[i-verticalI][j-horizontalI].r = image[i][j].r;
 			newImage[i-verticalI][j-horizontalI].g = image[i][j].g;
 			newImage[i-verticalI][j-horizontalI].b = image[i][j].b;
 		}
 	}
 
-
-	
+	//altera os valores de tamanho da imagem
 	*width = size;
 	*height = size;
 
@@ -175,40 +180,26 @@ Pixel** cropImage(Pixel **image, int *width, int *height, Circle c){
 
 }
 
-//SE N USAR, APAGAR ESSA FUNCAO
-void histogram(Pixel **image, int width, int height){
-	int i, j;
-	int a[256] = {0};
-	//printf("asusanads\n");
-
-	for (i = 0; i < height; i++){
-
-		for (j = 0; j < width; j++){
-
-			a[(int) fmin(image[i][j].r, 255)]++;
-		}
-	}
-
-	for (i = 0; i < 256; i++){
-		printf("%d, %d\n", i, a[i]);
-		
-	}
-
-	return;
-	
-}
-
+//Retorna uma imagem binária a partir de um threshold dado
 int** getBinImage(Pixel **image, int width, int height, int threshold){
-	int i, j,
-		**binImage = calloc (height, sizeof(int));
+	int i, j, //contadores
+		**binImage = calloc (height, sizeof(int)); //imagem binaria
+	
+	//verifica se houve erro na alocação da imagem
 	if (binImage == NULL){
 		fprintf(stderr, "Falha de alocação\n");
 		exit(0);
 	}
 
+	//percorre a imagem binaria
 	for (i = 0; i < height; i++){
+		//aloca as linhas
 		binImage[i] = calloc(width,sizeof(int));
+
 		for (j = 0; j < width; j++){
+			
+			//caso o threshold seja positivo, os pixels acima desse serão 1 e os demais 0
+			//o comportamento oposto ocorre quanto o threshold é negativo
 			if (threshold >= 0){
 				if (image[i][j].r >= threshold)
 					binImage[i][j] = true;
@@ -227,42 +218,18 @@ int** getBinImage(Pixel **image, int width, int height, int threshold){
 	return binImage;
 }
 
-//metodo de debug, lembrar de apagar
-Pixel** createBinImage(int **image, int width, int height){
-	int i, j,
-		w = 167, b = 8;
-	Pixel **imageRes = calloc(height,sizeof(Pixel));
-	if (imageRes == NULL){
-		fprintf(stderr, "Falha de alocação\n");
-		exit(0);
-	}
-	for (i = 0; i < height; i++){
-		imageRes[i] = calloc(width,sizeof(Pixel));
-		for (j = 0; j< width; j++)
-			if (image[i][j] == true){
-				imageRes[i][j].r = w;
-				imageRes[i][j].g = w;
-				imageRes[i][j].b = w;
-			} else {
-				imageRes[i][j].r = b;
-				imageRes[i][j].g = b;
-				imageRes[i][j].b = b;
-			}
-	}
-	return imageRes;
-}
-
-//metodo de debug
+//Retorna a porcentagem com base nos valores total e atual, dados
 double getPercentual (int vTotal, int vCurrent){
 	double out = (double) (vCurrent * 100)/vTotal;
 	return out;
 }
 
+//Retorna um círculo com base em raios máximo e mínimo, dados, em uma imagem
 Circle findCircle(int **image, int width, int height, int rmin, int rmax){
-	double cosValues[360],
-		   sinValues[360];
-	int x, y, r, t, a, b,
-		rmag = rmax - rmin;
+	double cosValues[360], //valores de cosseno
+		   sinValues[360]; //valores de seno
+	int x, y, r, t, a, b, //contadores
+		rmag = rmax - rmin; //tamanho da terceira dimensão da matriz A
 		
 	//calcula previamente valores de seno e cosseno em [0;2pi)
 	for (t = 0; t < 360; t++){
@@ -270,8 +237,16 @@ Circle findCircle(int **image, int width, int height, int rmin, int rmax){
 		sinValues[t] = sin(t*M_PI/180);
 	}
 
-	//alocando matrix height X width X rmag
+	//alocan matriz height X width X rmag
 	int ***A = calloc(height, sizeof(int ***));
+
+	//verifica se houve erro na alocação
+	if (A == NULL){
+		fprintf(stderr, "Falha de alocação\n");
+		exit(0);
+	}
+
+	//aloca as demais dimensões da matriz
 	for (x = 0; x < height; x++){
 		A[x] = calloc(width, sizeof(int*));
 		for (y = 0; y < width; y++){
@@ -279,30 +254,33 @@ Circle findCircle(int **image, int width, int height, int rmin, int rmax){
 		}
 	}
 
-	//variaveis debug 
-	int aux = 0, total = width * height;
-	double per;
+	int aux = 0, //variavel auxiliar
+	    total = width * height; //total de pixels
+	double per; //percentual
 
-	//para todos os pixels que compoem a imagem
+	//percorre a imagem
 	for (x = 0; x < height; x++){
 		for (y = 0; y < width; y++){
 
-			//debug
+			//mostra o progresso do algoritmo
 			aux++;
 			per = getPercentual(total, aux);
 			printf("\r%.2lf %%  ", per);
 			fflush(stdout);
-			//fimdebug
 
-			//para os pixels de arestas
+			//caso encontre um pixel de aresta
 			if (image[x][y] == true){
+
+				//para cada possível raio
 				for (r = 0; r < rmag; r++){
+
+					//para cada ângulo entre [0;2pi)
 					for (t = 0; t < 360; t++){
+						//calcula o centro do circulo 
 						a = (int) (x - (r+rmin)*cosValues[t]);
 						b = (int) (y - (r+rmin)*sinValues[t]);
 
-						
-						//verifica se o centro encontrado forma círculos válidos						
+						//verifica se o centro encontrado forma círculos válidos dentro da imagem						
 						if ((a-(r+rmin)) >= 0 && (b-(r+rmin)) >= 0 && 
 							(a+(r+rmin)) < height && (b+(r+rmin)) < width){ 
 
@@ -319,11 +297,16 @@ Circle findCircle(int **image, int width, int height, int rmin, int rmax){
 
 	aux = 0;
 	Circle c = {0, 0, 0};
-	a = 0;
+	a = 0; //maior valor de soma de interseções de centros de círculo
+
+	//para todos os raios possíveis
 	for (r = 0; r < rmag; r++){	
 
+		//percorre a imagem
 		for (x = 0; x < height; x++){
 			for (y = 0; y < width; y++){
+				//se uma soma na posição A[x][y][r] maior que a anterior foi encontrada,
+				//atualiza o maior valor
 				if (A[x][y][r] > a){
 					a = A[x][y][r];
 					c.r = r + rmin;	
@@ -338,12 +321,16 @@ Circle findCircle(int **image, int width, int height, int rmin, int rmax){
 	return c;
 }
 
+//Desenha um círculo passado como parâmetro na imagem dada
 void drawCircle (Pixel **image, int width, int height, Circle c, int margin, float opacity){
-	double pi = 3.14;
-	int x, y, t, r; 
+	int x, y, t, r; //contadores
 
+	//percorre a imagem
 	for (x = 0; x < height; x++){
 		for (y = 0; y < width; y++){
+
+			//se o pixel estiver fora da região do circulo, será multiplicado por um fator
+			//escurecedor
 			if (x < (c.x - c.r) || x > (c.x + c.r) ||
 				y < (c.y - c.r) || y > (c.y + c.r)){
 				image[x][y].r *= opacity;
@@ -358,12 +345,14 @@ void drawCircle (Pixel **image, int width, int height, Circle c, int margin, flo
 	}
 
 
-	//desenha linha vermelha
+	//desenha linha vermelha 'margin' vezes
 	for (r = 0; r < margin; r++){
 		for (t = 0; t < 360; t++){
+			//obtem a coordenada de um ponto na circunferência do circulo
 			x = (int) c.x + c.r*cos(t*M_PI/180);
 			y = (int) c.y + c.r*sin(t*M_PI/180);
 
+			//atribui a cor vermelha à borda do círculo
 			image[x][y].r = 255;
 			image[x][y].g = 0;
 			image[x][y].b = 0;
@@ -376,15 +365,17 @@ void drawCircle (Pixel **image, int width, int height, Circle c, int margin, flo
 
 
 double cataractDiagnosis (Pixel **image, Circle pupil, Circle flash){
-	int i, j,
+	int i, j, //contadores
 		cTotal = 0, //numero de pixels com catarata
 		nTotal = 0; //numero de pixels dentro do circulo
 
 	for (i = (pupil.x - pupil.r); i <= (pupil.x + pupil.r); i++){
 		for (j = (pupil.y - pupil.r); j <= (pupil.y + pupil.r); j++){
-			//se o pixel estiver dentro do circulo
+			//se o pixel estiver dentro da pupila e fora do flash
 			if (sqrt(pow((i - pupil.x), 2) + pow((j - pupil.y), 2)) <= pupil.r &&
 				sqrt(pow((i - flash.x), 2) + pow((j - flash.y), 2)) > flash.r){
+				
+				//se for um pixel de catarata
 				if (image[i][j].r > PIXEL_CATARACT_MIN_THRESHOLD &&
 					image[i][j].r < PIXEL_CATARACT_MAX_THRESHOLD)
 					cTotal++;
@@ -392,27 +383,29 @@ double cataractDiagnosis (Pixel **image, Circle pupil, Circle flash){
 			}
 		}
 	}
+
+	//retorna o percentual de comprometimento da pupila
 	return (double) cTotal/nTotal*100;
 }
 
+//Estima um possível centro do olho com base na coordenada do flash
 Circle estimateCenter(int **image, int width, int height){
-	int x, y, max, i, j, aux,
-		*horizontalProjection = calloc(width, sizeof(int)),
-		*verticalProjection = calloc(height, sizeof(int));
-	if (verticalProjection == NULL || horizontalProjection == NULL){
-		fprintf(stderr, "Falha de alocação\n");
-		exit(0);
-	}
-
-	Circle c = {0, 0, R_CROP_MAX};
-	if (fmin(width, height) < 3*R_CROP_MAX)
-		c.r /= 2;
+	int x, y, max, i, j, aux; //variáveis de contagem e auxiliares
+		
+	Circle c = {0, 0, 0}; //circulo genérico
 
 	max = 0;
+
+	//as possiveis regioes de flash sao calculadas pela maior soma de pixels de flash
+	//numa matrix 32X32
+
+	//percorre a imagem respeitando os limites
 	for (y = 0 + FLASH_AREA; y < height - FLASH_AREA; y++){
 		for (x = 0 + FLASH_AREA; x < width - FLASH_AREA; x++){
 			
 			aux = 0;
+
+			//se o pixel for de flash, soma na variavel auxiliar
 			if (image[y][x] == 1){
 				for (i = -FLASH_AREA; i <= FLASH_AREA; i++){
 					for (j = -FLASH_AREA; j <= FLASH_AREA; j++){
@@ -422,6 +415,7 @@ Circle estimateCenter(int **image, int width, int height){
 				}
 			}
 
+			//o pixel que tiver a maior área, provavelmente será um flash
 			if (max < aux){
 				max = aux;
 				c.x = x;
@@ -433,32 +427,38 @@ Circle estimateCenter(int **image, int width, int height){
 	return c;
 }
 
+//Encontra o círculo que contém o círculo dado
 Circle fastFindCircle(int **image, int width, int height, Circle c){
+	int a = 0, aux = 0, v = 0, //contadores e auxiliares
+		iPosX, fPosX, iPosY, fPosY; //posições inicial e final, horizontalmente e inicial e final, verticalmente
+	Circle center = {0,0,0}; //círculo genérico
 
-	int a = 0, aux = 0, v = 0,
-		iPosX, fPosX, iPosY, fPosY;
-	Circle center = {0,0,0};
-
+	//encontra a primeira aresta, a partir da coordenada do flash, nas quatro direções
+	//(para esquerda, para direita, para baixo, para cima, respectivamente)
 	iPosX = findEdge (image, c.x, c.y, v, -1, 0);
 	fPosX = findEdge (image, c.x, c.y, v, 1, 0);
 	iPosY = findEdge (image, c.x, c.y, v, 0, -1);
 	fPosY = findEdge (image, c.x, c.y, v, 0, 1);
 
-
-
+	//calcula o centro do círculo com base nos pontos médios
 	center.x = (iPosX + fPosX)/2;
 	center.y = (iPosY + fPosY)/2;
 
+	//calcula o maior raio (caso seja uma elipse)
 	center.r = fmax(distanceOfPoints(iPosX, c.y, center.x, center.y), 
 			   distanceOfPoints(c.x, iPosY, center.x, center.y));
 
 	return center;
 }
 
+//Preenche uma região de uma imagem binária
 void fill (int **image, int origX, int origY, int v1, int v2){
 	//onde tiver v1, ele preenche com v2
 	if (image[origY][origX] == v1)
 		image[origY][origX] = v2;
+
+	//verifica se o pixel nas quatro direções podem ser preenchidos, caso sim,
+	//os preenche de forma recursiva
 
 	if (image[origY][origX+1] == v1)
 		fill (image, origX+1, origY, v1, v2);
@@ -474,32 +474,11 @@ void fill (int **image, int origX, int origY, int v1, int v2){
 
 }
 
-//DELETAR SE N USAR
-void fillImage (Pixel **image, Circle c, int threshold, int v){
-	//onde tiver threshold, ele preenche com v
-	int i, j,
-		vTotal = 0, //numero de pixels com catarata
-		nTotal = 0; //numero de pixels dentro do circulo
-
-	for (i = (c.x - c.r); i <= (c.x + c.r); i++){
-		for (j = (c.y - c.r); j <= (c.y + c.r); j++){
-			//se o pixel estiver dentro do circulo
-			if (sqrt(pow((i - c.x), 2) + pow((j - c.y), 2)) < c.r-1){
-				if (image[i][j].r >= threshold){
-					image[i][j].r = v;
-					image[i][j].g = v;
-					image[i][j].b = v;
-				
-				}
-			}
-		}
-	}
-
-}
-
+//Retorna a posição do primeiro pixel encontrado numa imagem binária conforme o valor passado como parâmetro
 int findEdge (int **image, int origX, int origY, int value, int horizontal, int vertical){
-	int aux = 0, range = 6;
+	int aux = 0, range = 6; //auxiliares
 
+	//procura por um pixel de aresta de forma horizontal e retorna sua posição
 	if (horizontal != 0){
 		while ((image[origY][origX + horizontal*aux] != value) && (aux < origX)){
 			aux++;
@@ -508,6 +487,7 @@ int findEdge (int **image, int origX, int origY, int value, int horizontal, int 
 		return (origX + horizontal*aux);
 	}
 
+	//procura por um pixel de aresta de forma vertical e retorna sua posição
 	if (vertical != 0){
 		while ((image[origY + vertical*aux][origX] != value) && (aux < origY)){
 			aux++;
@@ -517,22 +497,28 @@ int findEdge (int **image, int origX, int origY, int value, int horizontal, int 
 	}
 
 	return 0;
-	
-	//iPosX = c.x - aux;
 }
 
+//Calcula a distância entre dois pontos
 int distanceOfPoints(int x1, int y1, int x2, int y2){
 	int d = (int) sqrt(pow((x1-x2),2) + pow((y1-y2),2));
 	return d;
 }
 
+//Retorna o maior valor de pixel da imagem dada
 int getMaxPixelIntensity(Pixel **image, int width, int height){
-	int i, j, d = 0;
+	int i, j, d = 0; //contadores e auxiliares
+
+	//percorre a imagem
 	for (i = 0; i < height; i++){
 		for (j = 0; j < width; j++){
+
+			//se encontrar um valor maior que o anterior, recebê-lo
 			if (image[i][j].r > d){
 				d = image[i][j].r;
 			}
+
+			//se encontrar um valor 255, retorna-o
 			if (d == 255){
 				return d; 
 			}
@@ -541,6 +527,7 @@ int getMaxPixelIntensity(Pixel **image, int width, int height){
 	return d;
 }
 
+//Conta a quantidade de pixels numa imagem binária, que possuem um valor
 int countPixels(int **image, int width, int height, int v){
 	int i, j, d = 0;
 	for (i = 0; i < height; i++){
@@ -552,38 +539,23 @@ int countPixels(int **image, int width, int height, int v){
 	return d;
 }
 
-//DELETAR SE N USAR
-int getMediumPixel (Pixel **image, Circle c){
-	int i, j,
-		vTotal = 0, //numero de pixels com catarata
-		nTotal = 0; //numero de pixels dentro do circulo
-
-	for (i = (c.x - c.r); i <= (c.x + c.r); i++){
-		for (j = (c.y - c.r); j <= (c.y + c.r); j++){
-			//se o pixel estiver dentro do circulo
-			if (sqrt(pow((i - c.x), 2) + pow((j - c.y), 2)) <= c.r){
-				vTotal+=image[i][j].r;
-				nTotal++;
-			}
-			
-		}
-	}
-	return vTotal/nTotal;
-}
-
+//Retorna uma imagem binária com valores nulos fora da região do círculo dado
 int** excludeOutsideCircle(int **image, int width, int height, Circle c){
-	int x, y,
-		**outImage = calloc(height, sizeof(int*));
+	int x, y, //contadores
+		**outImage = calloc(height, sizeof(int*)); //imagem binária
+
+	//verifica se houve erro na alocação da imagem
 	if (outImage == NULL){
 		fprintf(stderr, "Falha de alocação\n");
 		exit(0);
 	}
+
+	//percorre a imagem
 	for (y = 0; y < height; y++){
 		outImage[y] = calloc(width, sizeof(int));
 		for (x = 0; x < width; x++){
-			//if (sqrt(pow((x - c.x), 2) + pow((y - c.y), 2)) < c.r) {
-			//	outImage[y][x] = image[y][x];
-			//}
+
+			//se o pixel estiver dentro do círculo, copia ele para a nova imagem binária
 			if ( (x > c.x-c.r) && (x < c.x+c.r) && (y > c.y-c.r) && (y < c.y+c.r)) 
 				outImage[y][x] = image[y][x];
 

@@ -1,5 +1,6 @@
 #include "ioput.h"
-//pula os comentários com base no caracter passado
+
+//Pula os comentários com base no caracter passado
 void jumpComment(FILE *file, char c){
 	char hash, line[70];
 	//recebe o proximo caractere do arquivo
@@ -16,7 +17,7 @@ void jumpComment(FILE *file, char c){
 	}
 }
 
-//função pra verificar o tipo da imagem
+//Lê e retorna a imagem no caminho passado por parâmetro
 Pixel** readImage(ObjectImage *objectImage){
 	//compara o tipo e chama a função correspondente
 	if(strcmp(objectImage->format, "ppm") == 0){
@@ -27,7 +28,8 @@ Pixel** readImage(ObjectImage *objectImage){
 		readBMP(objectImage);
 	}
 }
-//procura uma palavra num array de palavras
+
+//Procura a palavra dada no array de palavras passado por parâmetro
 int searchWord(char *words[], char *word, int t){
 	int i;
 	//percorre o vetor de pavaras
@@ -39,15 +41,19 @@ int searchWord(char *words[], char *word, int t){
 	}
 	return -1;
 }
-//retorna um o objectImage com seus parametros preenchidos.
+
+//Retorna um o objectImage com seus parametros preenchidos
 ObjectImage* newObjectImage(int argc, char *argv[]){
 	ObjectImage *objectImage = calloc(1, sizeof(ObjectImage));
 	//verifica a quantidade de parametros
 	if (argc != 7){
+		//caso tenham sido digitados parâmetros insuficientes, ocasiona erro
 		objectImage->initialized = false;
 		fprintf(stderr, "Há parâmetros faltando.\n");
 		exit(0);
-	} else {//inicializa os valores
+	} else {
+		//inicializa os valores
+
 		objectImage->source      = argv[searchWord(argv, "-i", argc) + 1];//caminho da imagem
 		objectImage->format      = argv[searchWord(argv, "-f", argc) + 1];//formato
 		objectImage->destination = argv[searchWord(argv, "-o", argc) + 1];//diagnóstico
@@ -56,7 +62,8 @@ ObjectImage* newObjectImage(int argc, char *argv[]){
 	}
 	return objectImage;
 }
-//lê uma imagem no formato PPM (P6 OU P3) e retorna uma matriz de pixels
+
+//Lê uma imagem no formato PPM (P6 OU P3) e retorna uma matriz de pixels
 Pixel** readPPM(ObjectImage *objectImage){
 	int i, j,mp;//contadores e pixel máximo
 	char hash,line[70],header[70],eol;//auxiliares
@@ -118,7 +125,8 @@ Pixel** readPPM(ObjectImage *objectImage){
 	fclose(img);
 	return image;
 }
-//lê uma imagem no formato PBM (P1) e retorna uma matriz de pixels
+
+//Lê uma imagem no formato PBM (P1) e retorna uma matriz de pixels
 Pixel** readPBM(ObjectImage *objectImage){
 	int i, j;//contador
 	char hash,line[70];//auxiliares
@@ -167,7 +175,8 @@ Pixel** readPBM(ObjectImage *objectImage){
 	fclose(img);
 	return image;
 }
-//lê uma imagem no formato PGM (P3) e retorna uma matriz de pixels
+
+//Lê uma imagem no formato PGM (P3) e retorna uma matriz de pixels
 Pixel** readPGM(ObjectImage *objectImage){
 	int i, j;
 	char hash,line[70],header[70],eol;;
@@ -238,7 +247,7 @@ Pixel** readPGM(ObjectImage *objectImage){
 	fclose(img);
 	return image;
 }
-//lê uma imagem no formato BMP e retorna uma matriz de pixels
+//Lê uma imagem no formato BMP e retorna uma matriz de pixels
 Pixel** readBMP(ObjectImage *objectImage){
 	int i, j,mp;// contadores e pixel máximo
 	char hash,line[70],header [70],eol;//auxliares 
@@ -291,7 +300,8 @@ Pixel** readBMP(ObjectImage *objectImage){
 	fclose(img);
 	return image;
 }
-//escreve a imagem lida em um arquivo .ppm
+
+//Escreve a imagem lida em um arquivo .ppm
 void writeImage(ObjectImage *objectImage, Pixel **image){
 	int i, j;
 	FILE *img; 
@@ -314,7 +324,8 @@ void writeImage(ObjectImage *objectImage, Pixel **image){
 	fclose(img);
 	return ;
 }
-//escreve o diagnóstico com base na porcentagem de pixels com e sem catarata
+
+//Escreve o diagnóstico com base na porcentagem de pixels com e sem catarata
 void writeDiagnosis(ObjectImage objectImage, double v, double threshold){
 	FILE *file; 
 	file = fopen(objectImage.destination,"w");
@@ -326,6 +337,7 @@ void writeDiagnosis(ObjectImage objectImage, double v, double threshold){
 	fclose(file);
 }
 
+//Lê uma imagem ppm (metodo usado caso dê errado a leitura pelos demais métodos)
 Pixel** readImageLegacy(ObjectImage *objectImage){
 	int i, j;
 	char hash,line[70];
