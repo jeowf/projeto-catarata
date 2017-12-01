@@ -4,6 +4,10 @@
 Pixel** copyImage(Pixel **image, int width, int height){
 	int i, j;
 	Pixel **newImage = calloc(height,sizeof(Pixel));
+	if (newImage == NULL){
+		fprintf(stderr, "Falha de alocação\n");
+		exit(0);
+	}
 	for (i = 0; i < height; i++){
 		newImage[i] = calloc(width,sizeof(Pixel));
 		for (j = 0; j< width; j++)
@@ -169,7 +173,7 @@ void histogram(Pixel **image, int width, int height){
 int** getBinImage(Pixel **image, int width, int height, int threshold){
 	int i, j,
 		**binImage = calloc (height, sizeof(int));
-		if (binImage == NULL){
+	if (binImage == NULL){
 		fprintf(stderr, "Falha de alocação\n");
 		exit(0);
 	}
@@ -345,7 +349,6 @@ void drawCircle (Pixel **image, int width, int height, Circle c, int margin, flo
 
 double cataractDiagnosis (Pixel **image, Circle pupil, Circle flash){
 	int i, j,
-		//pTotal = 0, //total 
 		cTotal = 0, //numero de pixels com catarata
 		nTotal = 0; //numero de pixels dentro do circulo
 
@@ -368,7 +371,7 @@ Circle estimateCenter(int **image, int width, int height){
 	int x, y, max, i, j, aux,
 		*horizontalProjection = calloc(width, sizeof(int)),
 		*verticalProjection = calloc(height, sizeof(int));
-		if (verticalProjection == NULL || horizontalProjection == NULL){
+	if (verticalProjection == NULL || horizontalProjection == NULL){
 		fprintf(stderr, "Falha de alocação\n");
 		exit(0);
 	}
@@ -413,11 +416,11 @@ Circle fastFindCircle(int **image, int width, int height, Circle c){
 	iPosY = findEdge (image, c.x, c.y, v, 0, -1);
 	fPosY = findEdge (image, c.x, c.y, v, 0, 1);
 
-	//printf("ix:%d fx:%d iy:%d fy:%d\n", iPosX, fPosX, iPosY, fPosY );
+
 
 	center.x = (iPosX + fPosX)/2;
 	center.y = (iPosY + fPosY)/2;
-	//printf("(%d, %d)\n", center.x, center.y);
+
 	center.r = fmax(distanceOfPoints(iPosX, c.y, center.x, center.y), 
 			   distanceOfPoints(c.x, iPosY, center.x, center.y));
 
@@ -543,7 +546,7 @@ int getMediumPixel (Pixel **image, Circle c){
 int** excludeOutsideCircle(int **image, int width, int height, Circle c){
 	int x, y,
 		**outImage = calloc(height, sizeof(int*));
-		if (outImage == NULL){
+	if (outImage == NULL){
 		fprintf(stderr, "Falha de alocação\n");
 		exit(0);
 	}
