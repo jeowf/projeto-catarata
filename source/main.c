@@ -106,7 +106,6 @@ int main(int argc, char *argv[]){
 	//cria uma versão binária da imagem (região da íris) com sobel, porém com um threshold maior, para
 	//obter as arestas dos círculos que irão compor o flash
 	int **flashRegion = getBinImage(irisRegion, objectImage->width, objectImage->height, 60);
-	//printf("%d\n", flashRegion[98][1]);
 
 	//escreve a imagem enquanto essa será processada (apenas um debug útil)
 	writeImage(objectImage, imageFinal);
