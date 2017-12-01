@@ -2,13 +2,16 @@
 //pula os comentários com base no caracter passado
 void jumpComment(FILE *file, char c){
 	char hash, line[70];
+	//recebe o proximo caractere do arquivo
 	hash= fgetc(file);
-	//percorre o arquivo de imagem
+	//percorre o arquivo de imagem comparado os valores
 	if (hash == c){
-		//coloca leitor no fim da linha caso seja comentario
+		//coloca leitor no fim da linha caso seja comentário
 		fgets(line, 70, file);
+		//chama novamente a função
 		jumpComment(file, c);
 	} else {
+		//volta uma posição na leitura do arquivo
 		fseek(file,-1,SEEK_CUR);
 	}
 }
@@ -27,9 +30,11 @@ Pixel** readImage(ObjectImage *objectImage){
 //procura uma palavra num array de palavras
 int searchWord(char *words[], char *word, int t){
 	int i;
-	//pecorre o vetor e devolve a posição no vetor
+	//percorre o vetor de pavaras
 	for (i = 0; i < t; i++){
+		//verifica se a palavrase enconta no vetor
 		if (strcmp(words[i], word) == 0)
+			//retorna o indice que a palavra se encontra dento do array
 			return i;
 	}
 	return -1;
@@ -37,12 +42,12 @@ int searchWord(char *words[], char *word, int t){
 //retorna um o objectImage com seus parametros preenchidos.
 ObjectImage* newObjectImage(int argc, char *argv[]){
 	ObjectImage *objectImage = calloc(1, sizeof(ObjectImage));
-	//verifica a quanidade de parametros
+	//verifica a quantidade de parametros
 	if (argc != 7){
 		objectImage->initialized = false;
 		fprintf(stderr, "Há parâmetros faltando.\n");
 		exit(0);
-	} else {
+	} else {//inicializa os valores
 		objectImage->source      = argv[searchWord(argv, "-i", argc) + 1];//caminho da imagem
 		objectImage->format      = argv[searchWord(argv, "-f", argc) + 1];//formato
 		objectImage->destination = argv[searchWord(argv, "-o", argc) + 1];//diagnóstico
